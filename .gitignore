@@ -1,0 +1,63 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+client/node_modules
+client/.pnp
+client.pnp.js
+
+# testing
+client/coverage
+
+# production
+client/build
+
+# misc
+client.DS_Store
+client/.env
+client.env
+client.env.local
+client.env.development.local
+client.env.test.local
+client.env.production.local
+
+clientnpm-debug.log*
+clientyarn-debug.log*
+clientyarn-error.log*
+
+
+node_modules/
+.env
+server/images/
+client/node_modules
+
+# dependencies
+server/node_modules
+server/images
+server/.pnp
+server.pnp.js
+
+# images folder
+server/images/
+
+# testing
+server/coverage
+
+# production
+server/build
+
+
+# misc
+server.DS_Store
+server/.env
+server.env.local
+server.env.development.local
+server.env.test.local
+server.env.production.local
+server.env
+
+servernpm-debug.log*
+serveryarn-debug.log*
+serveryarn-error.log*
+
+# dependencies
+TODO.txt
