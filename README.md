@@ -12,6 +12,7 @@ This application is created for creating fast and standalone video conferences w
 
 **Technologies that used in creation of this app:**
 - React JS
+- TypeScript
 - Axios
 - Material UI
 - Node / Express js

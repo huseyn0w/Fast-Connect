@@ -1,28 +1,36 @@
 import React, {useState, useEffect} from 'react';
 import Peer from 'peerjs';
+import {Redirect} from 'react-router-dom';
 
 const Call:React.FC = () => {
     const [videoStreams, setVideoStreams] = useState<MediaStream[]>([]);
 
+    let confID = localStorage.getItem('confID') ?? undefined;
+
     useEffect(() => {
 
-        const myPeer = new Peer(undefined, {
+        
+
+        if(typeof(confID) === 'undefined') return;
+
+        const myPeer = new Peer(confID, {
             path: '/peerjs',
             host: '/',
             port: 5000
         })
 
-        // const myVideo = document.createElement('video')
+        const myVideo = document.createElement('video')
 
         navigator.mediaDevices.getUserMedia({
             video: true,
             audio: false
         })
         .then(stream => {
-            // myVideo.srcObject = stream
-            // myVideo.addEventListener('loadedmetadata', () => {
-            //     myVideo.play();
-            // })
+            myVideo.srcObject = stream
+            myVideo.addEventListener('loadedmetadata', () => {
+                myVideo.play();
+            })
+            console.log('stream is here');
             setVideoStreams(currentArray => {
                 return [...currentArray, stream]
             })
@@ -61,11 +69,11 @@ const Call:React.FC = () => {
     }
 
 
-    return (
-        <div className="App">
+    return confID ? 
+            <div className="App">
             {videoStreamsList}
         </div>
-    );
+        : <Redirect to="/" />;
 }
 
 export default Call

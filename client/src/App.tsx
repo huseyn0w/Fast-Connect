@@ -10,7 +10,6 @@ import Main from './pages/Main/Main';
 import NotFound from './pages/404/404';
 import Header from './pages/Skeleton/Header/Header';
 import Footer from './pages/Skeleton/Footer/Footer';
-import GuideLine from './pages/Guideline/Guideline';
 
 
 function App() {
@@ -23,11 +22,6 @@ function App() {
       <Route path="/about" exact>
         <Header />
           <About />
-        <Footer />
-      </Route>
-      <Route path="/get-started" exact>
-        <Header />
-          <GuideLine />
         <Footer />
       </Route>
       <Route path="/" exact>

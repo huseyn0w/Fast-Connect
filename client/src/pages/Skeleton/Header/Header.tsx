@@ -1,6 +1,6 @@
 import React from 'react';
 import Typography from '@material-ui/core/Typography';
-import Link from '@material-ui/core/Link';
+import {Link, useHistory} from 'react-router-dom';
 import AppBar from '@material-ui/core/AppBar';
 import Button from '@material-ui/core/Button';
 import CssBaseline from '@material-ui/core/CssBaseline';
@@ -31,28 +31,26 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const Footer:React.FC = () => {
-    const classes = useStyles();
+  const history = useHistory();
+  const classes = useStyles();
   return (
     <>
-    <CssBaseline />
+      <CssBaseline />
       <AppBar position="static" color="default" elevation={0} className={classes.appBar}>
         <Toolbar className={classes.toolbar}>
           <Typography variant="h6" color="inherit" noWrap className={classes.toolbarTitle}>
             Fast Connect
           </Typography>
           <nav>
-            <Link variant="button" color="textPrimary" href="/" className={classes.link}>
+            <Link to="/" className="nav-links">
               Home
             </Link>
-            <Link variant="button" color="textPrimary" href="/get-started" className={classes.link}>
-              Get Started
-            </Link>
-            <Link variant="button" color="textPrimary" href="/about" className={classes.link}>
+            <Link to="/about" className="nav-links">
               About Application
             </Link>
           </nav>
-          <Button href="https://github.com/huseyn0w/fast-connect" color="primary" variant="outlined" className={classes.link}>
-            GitHub
+          <Button target="_blank" variant="contained" href="https://github.com/huseyn0w/fast-connect" color="primary">
+            Github
           </Button>
         </Toolbar>
       </AppBar>
