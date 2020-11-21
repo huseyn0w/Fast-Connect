@@ -27,7 +27,7 @@ function App() {
       <Route path="/" exact>
         <Header />
           <Main />
-        <Footer />
+        {/* <Footer /> */}
       </Route>
       <Route component={NotFound} exact />
     </Switch>

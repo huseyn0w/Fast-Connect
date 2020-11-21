@@ -31,7 +31,12 @@ const useStyles = makeStyles((theme) => ({
     textDecoration:'none !important'
   },
   heroContent: {
-    padding: theme.spacing(8, 0),
+    height: '90vh',
+    display:'flex',
+    flexWrap:'wrap',
+    justifyContent:'center',
+    alignItems:'center',
+    alignContent: 'center',
     textDecoration: 'none',
     color: '#fff'
   },
@@ -95,7 +100,7 @@ const Main:React.FC = () => {
           Fast Connect
         </Typography>
         <Typography variant="h4" align="center" color="inherit" component="p" gutterBottom>
-          Standalone React WebRTC Application.
+          React WebRTC Application.
         </Typography>
         <Typography variant="h5" align="center" color="inherit" component="p">
           Create audio/video conference with built-in features and without registration in just 2 steps =)

@@ -1,39 +1,38 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useRef, useEffect} from 'react';
 import Peer from 'peerjs';
 import {Redirect} from 'react-router-dom';
+import CameraObj from './Streamer';
 
 const Call:React.FC = () => {
     const [videoStreams, setVideoStreams] = useState<MediaStream[]>([]);
 
     let confID = localStorage.getItem('confID') ?? undefined;
 
-    useEffect(() => {
 
+    
+
+    useEffect(() => {
         
 
         if(typeof(confID) === 'undefined') return;
 
         const myPeer = new Peer(confID, {
-            path: '/peerjs',
+            path: '/mypeer',
             host: '/',
             port: 5000
         })
 
-        const myVideo = document.createElement('video')
+        
 
-        navigator.mediaDevices.getUserMedia({
-            video: true,
-            audio: false
-        })
+        var constraints = { audio: false, video: { width: 200, height: 200 } }; 
+
+        navigator.mediaDevices.getUserMedia(constraints)
         .then(stream => {
-            myVideo.srcObject = stream
-            myVideo.addEventListener('loadedmetadata', () => {
-                myVideo.play();
-            })
-            console.log('stream is here');
+
             setVideoStreams(currentArray => {
                 return [...currentArray, stream]
             })
+    
             myPeer.on('call', call => {
                 call.answer(stream)
                 call.on('stream', userVideoStream => {
@@ -42,6 +41,8 @@ const Call:React.FC = () => {
                     })
                 })
             })
+
+
         });
 
 
@@ -54,23 +55,12 @@ const Call:React.FC = () => {
     let videoStreamsList: any = null;
 
     if (videoStreams.length > 0) {
-        videoStreams.forEach((stream, idx) => {
-            const video = document.createElement('video');
-            video.srcObject = stream;
-            video.addEventListener('loadedmetadata', () => {
-                video.play();
-                videoStreamsList += (
-                    <div>
-                        {video}
-                    </div>
-                )
-            })
-        })
+        videoStreamsList = videoStreams.map((stream, idx) => <CameraObj key={`stream-${idx}`} stream={stream} />)
     }
 
 
-    return confID ? 
-            <div className="App">
+    return confID  ? 
+        <div className="App">
             {videoStreamsList}
         </div>
         : <Redirect to="/" />;

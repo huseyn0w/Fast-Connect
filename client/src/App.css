@@ -23,9 +23,11 @@
   background: radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%);
   overflow: hidden;
   color:#fff;
+  position: relative;
 }
 
 #stars {
+  position: absolute;
   width: 1px;
   height: 1px;
   background: transparent;
@@ -43,6 +45,7 @@
 }
 
 #stars2 {
+  position: absolute;
   width: 2px;
   height: 2px;
   background: transparent;
@@ -60,6 +63,7 @@
 }
 
 #stars3 {
+  position: absolute;
   width: 3px;
   height: 3px;
   background: transparent;

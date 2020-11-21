@@ -6,6 +6,11 @@ const io = require('socket.io')(server);
 const path = require('path');
 const bodyParser = require('body-parser');
 const port = process.env.PORT || 5000;
+const ExpressPeerServer = require('peer').ExpressPeerServer;
+
+const options = {
+  debug: true,
+}
 
 app.use(cors());
 
@@ -39,5 +44,6 @@ if(process.env.NODE_ENV === 'production'){
    })
 }
 
+app.use('/mypeer', ExpressPeerServer(server, options));
 
 server.listen(port);
