@@ -46,6 +46,7 @@
 
 #stars2 {
   position: absolute;
+  left:0;
   width: 2px;
   height: 2px;
   background: transparent;
@@ -63,7 +64,7 @@
 }
 
 #stars3 {
-  position: absolute;
+  /* position: absolute; */
   width: 3px;
   height: 3px;
   background: transparent;
@@ -111,4 +112,44 @@
 
 .MuiInputLabel-formControl{
   overflow:hidden;
+}
+
+.AppCover{
+  background-image: url('./assets/conf-background.jpeg');
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  height: 100vh;
+  color:#fff;
+}
+
+.AppCover{
+  display: flex;
+  flex-wrap:wrap;
+}
+
+video{
+  width:100%;
+}
+
+.video-streams{
+  align-items:center;
+  justify-content:center;
+  flex-basis: 80%;
+  display: flex;
+  flex-wrap:wrap;
+}
+
+.stream-row{
+  display: flex;
+  flex-wrap:wrap;
+}
+
+.stream-item{
+  position: relative;
+}
+
+.stream-buttons{
+  position: absolute;
+  bottom: 0;
 }

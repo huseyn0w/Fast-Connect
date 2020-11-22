@@ -22,7 +22,7 @@ function App() {
       <Route path="/about" exact>
         <Header />
           <About />
-        <Footer />
+        {/* <Footer /> */}
       </Route>
       <Route path="/" exact>
         <Header />

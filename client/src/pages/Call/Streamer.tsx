@@ -1,10 +1,11 @@
 import React, {useEffect} from 'react';
 
 interface videoStreamInterface {
-    stream: MediaStream;
+    stream: MediaStream,
+    fullName: string,
 }
 
-const CameraObj:React.FC<videoStreamInterface> = ({stream}:videoStreamInterface) => {
+const Streamer:React.FC<videoStreamInterface> = ({stream, fullName}:videoStreamInterface) => {
 
     const videoEl =  React.createRef<HTMLVideoElement>();
 
@@ -18,13 +19,19 @@ const CameraObj:React.FC<videoStreamInterface> = ({stream}:videoStreamInterface)
         }
        
 
-    }, [stream, videoEl])
+    }, [videoEl, stream])
 
     return (
-        <div>
+        <div className="stream-item">
+            <h2>Im {fullName}</h2>
             <video ref={videoEl} autoPlay={true} />
+            <div className="stream-buttons">
+                <button type="button">Mute</button>
+                <button type="button">Stop video</button>
+                <button type="button">Share screen</button>
+            </div>
         </div>
     )
 }
 
-export default CameraObj
+export default Streamer
