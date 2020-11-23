@@ -28,7 +28,7 @@ const Streamer:React.FC<videoStreamInterface> = ({stream, fullName}:videoStreamI
             <div className="stream-buttons">
                 <button type="button">Mute</button>
                 <button type="button">Stop video</button>
-                <button type="button">Share screen</button>
+                {/* <button type="button">Share screen</button> */}
             </div>
         </div>
     )
