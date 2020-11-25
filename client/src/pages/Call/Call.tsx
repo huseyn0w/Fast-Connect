@@ -1,16 +1,17 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, FormEvent, FormEventHandler} from 'react';
 import Peer from 'peerjs';
 import {Redirect} from 'react-router-dom';
 import Streamer from './Streamer';
 import io from "socket.io-client";
+import Message from './Message';
 
 // @ts-ignore
 const socket = io(process.env.REACT_APP_BACKEND_URL, {'sync disconnect on unload': true });
 
-
 const Call:React.FC = () => {
     const [videoStreams, setVideoStreams] = useState<MediaStream[]>([]);
-
+    const [newMessage, setNewMessage] = useState<string>('');
+    const [messages, setMessages] = useState<Object[]>([]);
     
     
 
@@ -33,52 +34,66 @@ const Call:React.FC = () => {
             socket.emit('new-user-arriving-start', peerID, roomId)
         });
 
-        myPeer.on('call', call => {
-            console.log('we have acall');
-            navigator.mediaDevices.getUserMedia({ audio: true, video: true })
-            .then(stream => {
-                call.answer(stream);
-                call.on('stream', userVideoStream => {
-                    console.log('Im current stream');
-                    setVideoStreams(currentArray => {
-                        return [...currentArray, userVideoStream]
-                    })
-                })
-            })
-            
-            
-        })
-
-
-    
         socket.on('new-user-arrived-finish', (newPeerId: string, roomId: string) => {
 
-            console.log('arrived finish trigger');
-
-            navigator.mediaDevices.getUserMedia({ audio: true, video: true })
+            navigator.mediaDevices.getUserMedia({ audio: false, video: true })
             .then(stream => {
+
+                const currentStreamID = stream.id;
+
+                localStorage.setItem('currentStreamId', currentStreamID);
 
                 const call = myPeer.call(newPeerId, stream);
                 if(call){
                     call.on('stream', function(remoteStream) {
-                        console.log('im a remote stream');
+                        // console.log('remoteStream arrives')
                         setVideoStreams(currentArray => {
                             return [...currentArray, remoteStream]
                         })
                     });
                 }
 
-                
-        
-        
-                
-
-
             })
             .catch(err => {
                 console.log('we have error', err);
             });
         })
+
+        
+        
+
+
+
+
+        myPeer.on('call', call => {
+            navigator.mediaDevices.getUserMedia({ audio: false, video: true })
+            .then(stream => {
+                call.answer(stream);
+                setVideoStreams(currentArray => {
+                    return [...currentArray, stream]
+                })
+            })
+        })
+
+
+        socket.on('new message received', (data: { fullName: string; receivedMessage: string; }) => {
+            setMessages(currentArray => {
+                return [...currentArray, {
+                    sender:fullName,
+                    receivedMessage: data.receivedMessage
+                }]
+            })
+            setNewMessage('');
+        })
+
+
+        // window.onbeforeunload = () => {
+        //     const currentStreamID = localStorage.getItem('currentStreamId');
+        //     socket.emit('userExited', currentStreamID, roomId);
+        // }
+
+    
+        
 
         
         // console.log('test');
@@ -90,12 +105,32 @@ const Call:React.FC = () => {
 
     }, []);
 
+    // useEffect(() => { 
+    //     socket.on('userLeft', (streamID: string) => {
+    //         console.log('user has left', streamID, videoStreams);
+    //         let currentStreams =  videoStreams.map(el => {
+    //             return el.id != streamID;
+    //         })
+    //     });
+
+    // }, [videoStreams])
+
 
     let videoStreamsList: any = null;
 
     if (videoStreams.length > 0) {
         // console.log(videoStreams);
         videoStreamsList = videoStreams.map((stream, idx) => <Streamer key={`stream-${idx}`} fullName={fullName} stream={stream} /> )
+    }
+
+    const formHandler = (e:FormEvent) => {
+        e.preventDefault();
+        socket.emit('new message', {
+            sender:fullName,
+            receivedMessage: newMessage
+        }, roomId)
+
+        
     }
 
 
@@ -105,12 +140,21 @@ const Call:React.FC = () => {
                 {videoStreamsList}
             </div>
             <div className="video-sidebar">
-                ROOM ID: {roomId}
+                <div className="room-headline">
+                    ROOM ID: {roomId}
+                </div>
                 <div className="messages">
-                    Messages will be here
+                    {messages.length > 0 ? 
+                        messages.map((el, idx) => {
+                            let data:any = el;
+                            return <Message key={idx} data={data} />
+                        })
+                    : 'Chat is empty'}
                 </div>
                 <div className="input-area">
-                    input will be here
+                    <form onSubmit={formHandler}>
+                        <input type="text" name="message" value={newMessage} onChange={(e) => setNewMessage(e.target.value)} placeholder="Message" />
+                    </form>
                 </div>
             </div>
         </div>

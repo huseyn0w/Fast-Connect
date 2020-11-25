@@ -133,12 +133,26 @@ video{
 }
 
 .video-streams{
+  height:100vh;
+  overflow-y:scroll;
+  padding: 30px 0 30px 30px;
   align-items:center;
-  justify-content:center;
-  flex-basis: 80%;
+  justify-content:space-around;
+  flex: 0.8;
   display: flex;
   flex-wrap:wrap;
 }
+
+.video-sidebar{
+  /* position: fixed; */
+  /* top: 0;
+  right:0; */
+  display:flex;
+  flex-direction:column;
+  flex: 0.2;
+  /* border-left:3px solid #fff; */
+}
+
 
 .stream-row{
   display: flex;
@@ -147,9 +161,78 @@ video{
 
 .stream-item{
   position: relative;
+  width:400px;
+  margin-bottom: 30px;
+  resize:both;
 }
 
 .stream-buttons{
+  width: 100%;
   position: absolute;
-  bottom: 0;
+  bottom: 15px;
+  display: flex;
+  flex-wrap:wrap;
+  justify-content: center;
+}
+
+.stream-buttons button{
+  margin: 0 7px;
+  width: 55px;
+  height: 55px;
+  outline:0;
+  border:0;
+  border-radius: 50%;
+  cursor:pointer;
+}
+
+.stream-buttons button svg{
+  position: relative;
+  top: 2px;
+}
+
+.room-headline{
+  padding:15px 30px;
+  text-align:center;
+}
+
+
+.messages{
+  flex-grow:1;
+  overflow-y: auto;
+  padding:15px 30px;
+  border-top:3px solid #fff;
+  border-bottom:3px solid #fff;
+}
+
+.input-area{
+  display: flex;
+ 
+}
+
+.input-area form{
+  width: 100%;
+
+}
+
+.input-area input{
+  padding:15px 30px;
+  width:100%;
+  flex-grow: 1;
+  outline: 0;
+  border: 0;
+  background-color: transparent;
+  color:#fff;
+}
+
+.input-area input::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
+  color: #fff;
+  opacity: 1; /* Firefox */
+}
+
+.input-area input:-ms-input-placeholder { /* Internet Explorer 10-11 */
+  color: #fff;
+}
+
+.input-area input::-ms-input-placeholder { /* Microsoft Edge */
+  color: #fff;
 }

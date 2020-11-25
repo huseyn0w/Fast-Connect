@@ -3,7 +3,6 @@ const app = express();
 const server = require('http').createServer(app);
 const cors = require('cors');
 const io = require('socket.io')(server);
-
 const path = require('path');
 const bodyParser = require('body-parser');
 const port = process.env.PORT || 5000;
@@ -18,15 +17,23 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }))
 
-
-
-
-
 io.on('connection', (socket) => {
 
-    socket.on('new-user-arriving-start', (peerID, roomId) => {
-      socket.join(roomId);
-      io.to(roomId).emit('new-user-arrived-finish', peerID, roomId);
+    socket.on('new-user-arriving-start', (peerID, roomID) => {
+      socket.join(roomID);
+      io.to(roomID).emit('new-user-arrived-finish', peerID, roomID);
+    })
+
+    socket.on('userExited', (peerID, roomID) => {
+      socket.leave(roomID);
+      console.log(roomID);
+      io.to(roomID).emit('userLeft', peerID);
+    })
+
+    socket.on('new message', (data, roomID) => {
+      console.log(data);
+      socket.emit('new message received', data);
+      socket.to(roomID).emit('new message received', data);
     })
 
     socket.on("disconnect", () => {
@@ -36,10 +43,8 @@ io.on('connection', (socket) => {
 });
 
 app.get('/', (req, res) => {
-  res.send('hello world');
+  res.send('Welcome to the Fast Connect Backend ;)');
 })
-
-
 
 if(process.env.NODE_ENV === 'production'){
    app.use(express.static('client/build'));
