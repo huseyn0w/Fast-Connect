@@ -17,15 +17,19 @@ const Call:React.FC = () => {
 
     let roomId = localStorage.getItem('confID') ?? undefined;
     let fullName = localStorage.getItem('fullName') ?? '';
-    let backendPort = process.env.PORT || 5000;
 
-   
-    const myPeer = new Peer(undefined, {
+    let peerDetails = {
         path: '/mypeer',
         host: '/',
-         // @ts-ignore
-        port: backendPort
-    })
+    }
+    
+     if(process.env.NODE_ENV === 'production'){
+          // @ts-ignore
+        peerDetails.port = process.env.PORT || 5000;
+     }
+
+   
+    const myPeer = new Peer(undefined, )
 
     
 
