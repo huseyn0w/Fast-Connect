@@ -46,6 +46,8 @@ io.on('connection', (socket) => {
 //   res.send('Welcome to the Fast Connect Backend ;)');
 // })
 
+app.use('/mypeer', ExpressPeerServer(server, options));
+
 if(process.env.NODE_ENV === 'production'){
    app.use(express.static('client/build'));
    app.get('*', (req, res) => {
@@ -53,6 +55,6 @@ if(process.env.NODE_ENV === 'production'){
    })
 }
 
-app.use('/mypeer', ExpressPeerServer(server, options));
+
 
 server.listen(port);
