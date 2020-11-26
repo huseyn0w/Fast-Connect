@@ -73,6 +73,9 @@ const Call:React.FC = () => {
                     return [...currentArray, stream]
                 })
             })
+            .catch(err => {
+                console.log('we have error', err);
+            });
         })
 
 
