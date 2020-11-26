@@ -35,5 +35,8 @@
     "nodemon": "^2.0.6",
     "peer": "^0.5.3",
     "socket.io": "^2.3.0"
+  },
+  "engines": {
+    "node": "14.x"
   }
 }

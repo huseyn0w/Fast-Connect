@@ -42,9 +42,9 @@ io.on('connection', (socket) => {
 
 });
 
-app.get('/', (req, res) => {
-  res.send('Welcome to the Fast Connect Backend ;)');
-})
+// app.get('/', (req, res) => {
+//   res.send('Welcome to the Fast Connect Backend ;)');
+// })
 
 if(process.env.NODE_ENV === 'production'){
    app.use(express.static('client/build'));

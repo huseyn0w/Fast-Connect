@@ -16,17 +16,34 @@ const Streamer:React.FC<videoStreamInterface> = ({stream, fullName}:videoStreamI
     const videoEl =  React.createRef<HTMLVideoElement>();
     
 
+    // useEffect(() => {
+    //     let video = videoEl.current;
+    //     if(video){
+    //         video.srcObject = stream;
+    //         video.onloadedmetadata = function(e) {
+    //             if(video) video.play();
+    //         }
+    //     }
+       
+
+    // }, [])
+
     useEffect(() => {
         let video = videoEl.current;
         if(video){
             video.srcObject = stream;
             video.onloadedmetadata = function(e) {
-                if(video) video.play();
+                if(video) {
+                    if(videoMuted){
+                        video.pause();
+                    }
+                    else{
+                        video.play();
+                    }
+                }
             }
         }
-       
-
-    }, [])
+    }, [videoMuted])
 
     const audioHandler = () => {
         setAudioMuted(!audioMuted);

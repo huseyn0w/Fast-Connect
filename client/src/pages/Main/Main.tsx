@@ -85,15 +85,20 @@ const Main:React.FC = () => {
   }
 
   const createNewConference = () => {
-    localStorage.setItem('confID', createRoomInput);
-    localStorage.setItem('fullName', fullName);
-    history.push("/call");
+    if(createRoomInput && fullName){
+      localStorage.setItem('confID', createRoomInput);
+      localStorage.setItem('fullName', fullName);
+      history.push("/call");
+    }
+    
   }
 
   const joinConference = () => {
-    localStorage.setItem('confID', createRoomInput);
-    localStorage.setItem('fullName', fullName);
-    history.push("/call");
+    if(joinRoomInput && fullName){
+      localStorage.setItem('confID', joinRoomInput);
+      localStorage.setItem('fullName', fullName);
+      history.push("/call");
+    }
   }
 
   return (
@@ -153,7 +158,7 @@ const Main:React.FC = () => {
                     Generate ID
                   </Button>
                   <Button onClick={createNewConference} color="primary">
-                    Create
+                    Start new conference
                   </Button>
                 </DialogActions>
               </Dialog>
@@ -194,7 +199,7 @@ const Main:React.FC = () => {
                     Cancel
                   </Button>
                   <Button onClick={joinConference} color="primary">
-                    Join
+                    Join conference
                   </Button>
                 </DialogActions>
               </Dialog>

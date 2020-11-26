@@ -1,4 +1,4 @@
-import React, {useState, useEffect, FormEvent, FormEventHandler} from 'react';
+import React, {useState, useEffect, FormEvent} from 'react';
 import Peer from 'peerjs';
 import {Redirect} from 'react-router-dom';
 import Streamer from './Streamer';
@@ -87,21 +87,10 @@ const Call:React.FC = () => {
         })
 
 
-        // window.onbeforeunload = () => {
-        //     const currentStreamID = localStorage.getItem('currentStreamId');
-        //     socket.emit('userExited', currentStreamID, roomId);
-        // }
-
-    
-        
-
-        
-        // console.log('test');
-        
-
-        
-
-        
+        window.onbeforeunload = () => {
+            const currentStreamID = localStorage.getItem('currentStreamId');
+            socket.emit('userExited', currentStreamID, roomId);
+        }
 
     }, []);
 
@@ -116,7 +105,7 @@ const Call:React.FC = () => {
     // }, [videoStreams])
 
 
-    let videoStreamsList: any = null;
+    let videoStreamsList: any = "Loading...";
 
     if (videoStreams.length > 0) {
         // console.log(videoStreams);
@@ -125,10 +114,13 @@ const Call:React.FC = () => {
 
     const formHandler = (e:FormEvent) => {
         e.preventDefault();
-        socket.emit('new message', {
-            sender:fullName,
-            receivedMessage: newMessage
-        }, roomId)
+        if(newMessage){
+            socket.emit('new message', {
+                sender:fullName,
+                receivedMessage: newMessage
+            }, roomId)
+        }
+        
 
         
     }
@@ -141,7 +133,8 @@ const Call:React.FC = () => {
             </div>
             <div className="video-sidebar">
                 <div className="room-headline">
-                    ROOM ID: {roomId}
+                    <div>Copy and share the room ID in order to join the conference</div>
+                    <strong>ROOM ID: {roomId}</strong>
                 </div>
                 <div className="messages">
                     {messages.length > 0 ? 

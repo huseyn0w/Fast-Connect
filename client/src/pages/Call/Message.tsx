@@ -10,11 +10,9 @@ interface MessageInterface {
 const Message:React.FC<MessageInterface> = ({data: {sender, receivedMessage}}) => {
 
   return (
-    <>
-      <div>
+    <div className="message-item">
         <p><strong>{sender}:</strong> {receivedMessage}</p>
-      </div>
-    </>
+    </div>
   );
 }
 

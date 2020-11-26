@@ -3,6 +3,11 @@
   padding: 0;
   font-family: 'Roboto', Verdana, sans-serif;
   overflow-x: hidden;
+  box-sizing:border-box;
+}
+
+div{
+  box-sizing:border-box;
 }
 
 .about-text{
@@ -97,7 +102,7 @@
 }
 #title span {
   background: -webkit-linear-gradient(white, #38495a);
-  -webkit-background-clip: text;
+  /* -webkit-background-clip: text; */
   -webkit-text-fill-color: transparent;
 }
 
@@ -120,12 +125,20 @@
   background-size: cover;
   background-repeat: no-repeat;
   height: 100vh;
+  overflow:hidden;
   color:#fff;
 }
 
 .AppCover{
   display: flex;
   flex-wrap:wrap;
+  overflow: hidden;
+}
+
+.blackScreen{
+  width: 100%;
+  height: 300px;
+  background-color: #000;
 }
 
 video{
@@ -133,7 +146,6 @@ video{
 }
 
 .video-streams{
-  height:100vh;
   overflow-y:scroll;
   padding: 30px 0 30px 30px;
   align-items:center;
@@ -141,12 +153,15 @@ video{
   flex: 0.8;
   display: flex;
   flex-wrap:wrap;
+  height:100%;
 }
 
 .video-sidebar{
   /* position: fixed; */
   /* top: 0;
   right:0; */
+  background-color: #000;
+  position:relative;
   display:flex;
   flex-direction:column;
   flex: 0.2;
@@ -197,16 +212,23 @@ video{
 
 
 .messages{
-  flex-grow:1;
+  /* flex-grow:1; */
+  height:87vh;
   overflow-y: auto;
   padding:15px 30px;
   border-top:3px solid #fff;
   border-bottom:3px solid #fff;
+  color:#fff;
 }
 
 .input-area{
   display: flex;
- 
+  position: fixed;
+  bottom:0;
+  right:0;
+  width: 19%;
+  border-top:1px solid #fff;
+  color:#fff;
 }
 
 .input-area form{
@@ -222,6 +244,10 @@ video{
   border: 0;
   background-color: transparent;
   color:#fff;
+}
+
+.message-item{
+  margin: 5px 0;
 }
 
 .input-area input::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
