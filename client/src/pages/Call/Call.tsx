@@ -17,11 +17,14 @@ const Call:React.FC = () => {
 
     let roomId = localStorage.getItem('confID') ?? undefined;
     let fullName = localStorage.getItem('fullName') ?? '';
+    let backendPort = process.env.PORT || 5000;
 
+   
     const myPeer = new Peer(undefined, {
         path: '/mypeer',
         host: '/',
-        port: 5000
+         // @ts-ignore
+        port: backendPort
     })
 
     
@@ -31,11 +34,12 @@ const Call:React.FC = () => {
         if(typeof(roomId) === 'undefined' || fullName === '') return;
 
         myPeer.on('open', (peerID) => {
+            console.log('peer start');
             socket.emit('new-user-arriving-start', peerID, roomId)
         });
 
         socket.on('new-user-arrived-finish', (newPeerId: string, roomId: string) => {
-
+            console.log('user arrive finish');
             navigator.mediaDevices.getUserMedia({ audio: false, video: true })
             .then(stream => {
 
@@ -66,6 +70,7 @@ const Call:React.FC = () => {
 
 
         myPeer.on('call', call => {
+            console.log('we have new call');
             navigator.mediaDevices.getUserMedia({ audio: false, video: true })
             .then(stream => {
                 call.answer(stream);
@@ -80,6 +85,7 @@ const Call:React.FC = () => {
 
 
         socket.on('new message received', (data: { fullName: string; receivedMessage: string; }) => {
+            console.log('new message received');
             setMessages(currentArray => {
                 return [...currentArray, {
                     sender:fullName,
