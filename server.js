@@ -19,19 +19,17 @@ app.use(bodyParser.urlencoded({ extended: true }))
 
 io.on('connection', (socket) => {
 
-    socket.on('new-user-arriving-start', (peerID, roomID) => {
+    socket.on('new-user-arriving-start', (peerID, roomID, userName) => {
       socket.join(roomID);
-      io.to(roomID).emit('new-user-arrived-finish', peerID, roomID);
+      io.to(roomID).emit('new-user-arrived-finish', peerID, userName, roomID);
     })
 
     socket.on('userExited', (peerID, roomID) => {
       socket.leave(roomID);
-      console.log(roomID);
       io.to(roomID).emit('userLeft', peerID);
     })
 
     socket.on('new message', (data, roomID) => {
-      console.log(data);
       socket.emit('new message received', data);
       socket.to(roomID).emit('new message received', data);
     })

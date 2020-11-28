@@ -213,11 +213,10 @@ video{
 
 .messages{
   /* flex-grow:1; */
-  height:87vh;
+  height:80vh;
   overflow-y: auto;
-  padding:15px 30px;
+  padding:15px 30px 15px 15px;
   border-top:3px solid #fff;
-  border-bottom:3px solid #fff;
   color:#fff;
 }
 
@@ -237,7 +236,7 @@ video{
 }
 
 .input-area input{
-  padding:15px 30px;
+  padding:15px 30px 15px 15px;
   width:100%;
   flex-grow: 1;
   outline: 0;

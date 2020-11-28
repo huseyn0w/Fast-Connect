@@ -8,10 +8,10 @@ import Message from './Message';
 // @ts-ignore
 const socket = io(process.env.REACT_APP_BACKEND_URL, {'sync disconnect on unload': true });
 
-let roomId = localStorage.getItem('confID') ?? undefined;
-let fullName = localStorage.getItem('fullName') ?? '';
+const roomId = localStorage.getItem('confID') ?? undefined;
+const fullName = localStorage.getItem('fullName') ?? '';
 
-let peerDetails = {
+const peerDetails = {
     path: '/mypeer',
     host: '/',
 }
@@ -32,7 +32,7 @@ const Call:React.FC = () => {
 
 
     useEffect(() => {
-        socket.on('new-user-arrived-finish', (newUserId: string, roomId: string) => {
+        socket.on('new-user-arrived-finish', (newUserId: string, userName: string, roomId: string) => {
             if(!users.includes(newUserId)){
                 setUsers(users => {
                     return [...users, newUserId]
@@ -54,20 +54,26 @@ const Call:React.FC = () => {
         
         if(typeof(roomId) === 'undefined' || fullName === '') return;
 
+        
+
         myPeer.on('open', (peerID) => {
+            console.log('peer opened')
             localStorage.setItem('currentPeer', peerID);
-            socket.emit('new-user-arriving-start', peerID, roomId)
+            socket.emit('new-user-arriving-start', peerID, roomId, fullName);
         });
 
         myPeer.on('call', call => {
             console.log('we have new call');
-            navigator.mediaDevices.getUserMedia({ audio: false, video: true })
+            navigator.mediaDevices.getUserMedia({ audio: true, video: true })
             .then(stream => {
                 call.answer(stream);
                 call.on('stream', function(remoteStream) {
                     console.log('remote stream 2', remoteStream);
                     setVideoStreams(currentArray => {
-                        return [...currentArray, remoteStream]
+                        const newStreamArray = currentArray.filter(stream => {
+                            return stream.id !== remoteStream.id;
+                        })
+                        return [...newStreamArray, remoteStream];
                     })
                 });
 
@@ -91,12 +97,19 @@ const Call:React.FC = () => {
             setNewMessage('');
         })
 
+        // window.onbeforeunload = () => {
+        //     const currentStreamID = localStorage.getItem('currentStreamId');
+        //     socket.emit('userExited', currentStreamID, roomId);
+        // }
+
+
     }, []);
 
 
     useEffect(() => {
         if(users.length > 0){
-            navigator.mediaDevices.getUserMedia({ audio: false, video: true })
+            console.log('we are here');
+            navigator.mediaDevices.getUserMedia({ audio: true, video: true })
             .then(stream => {
 
                 localStorage.setItem('currentStreamId', stream.id);
@@ -110,7 +123,7 @@ const Call:React.FC = () => {
                 const currentPeer = localStorage.getItem('currentPeer');
                 
                 users.forEach((user) => {
-                    if(currentPeer != user){
+                    if(currentPeer !== user){
                         console.log('we are calling to a user', user, ' our id is', currentPeer);
                         const call = myPeer.call(user, stream);
                     
@@ -118,7 +131,10 @@ const Call:React.FC = () => {
                             console.log('call was made');
                             call.on('stream', function(remoteStream) {
                                 setVideoStreams(currentArray => {
-                                    return [...currentArray, remoteStream]
+                                    const newStreamArray = currentArray.filter(stream => {
+                                        return stream.id !== remoteStream.id;
+                                    })
+                                    return [...newStreamArray, remoteStream];
                                 })
                             });
 
@@ -175,7 +191,7 @@ const Call:React.FC = () => {
     let videoStreamsList: any = "Loading...";
 
     if (videoStreams.length > 0) {
-        // console.log(videoStreams);
+        console.log(videoStreams);
         videoStreamsList = videoStreams.map((stream, idx) => <Streamer key={`stream-${idx}`} fullName={fullName} stream={stream} /> )
     }
 
