@@ -8,114 +8,168 @@ import Message from './Message';
 // @ts-ignore
 const socket = io(process.env.REACT_APP_BACKEND_URL, {'sync disconnect on unload': true });
 
+let roomId = localStorage.getItem('confID') ?? undefined;
+let fullName = localStorage.getItem('fullName') ?? '';
+
+let peerDetails = {
+    path: '/mypeer',
+    host: '/',
+}
+
+if(process.env.NODE_ENV === 'production'){
+    // @ts-ignore
+    peerDetails.port = process.env.PORT || 5000;
+}
+
+
+const myPeer = new Peer();
+
 const Call:React.FC = () => {
     const [videoStreams, setVideoStreams] = useState<MediaStream[]>([]);
+    const [users, setUsers] = useState<string[]>([]);
     const [newMessage, setNewMessage] = useState<string>('');
     const [messages, setMessages] = useState<Object[]>([]);
-    
-    
 
-    let roomId = localStorage.getItem('confID') ?? undefined;
-    let fullName = localStorage.getItem('fullName') ?? '';
-
-    let peerDetails = {
-        path: '/mypeer',
-        host: '/',
-    }
-    
-     if(process.env.NODE_ENV === 'production'){
-          // @ts-ignore
-        peerDetails.port = process.env.PORT || 5000;
-     }
-
-   
-    const myPeer = new Peer(undefined, )
-
-    
 
     useEffect(() => {
-        
-        if(typeof(roomId) === 'undefined' || fullName === '') return;
-
-        myPeer.on('open', (peerID) => {
-            console.log('peer start');
-            socket.emit('new-user-arriving-start', peerID, roomId)
-        });
-
-        socket.on('new-user-arrived-finish', (newPeerId: string, roomId: string) => {
-            console.log('user arrive finish');
-            navigator.mediaDevices.getUserMedia({ audio: false, video: true })
-            .then(stream => {
-
-                const currentStreamID = stream.id;
-
-                localStorage.setItem('currentStreamId', currentStreamID);
-
-                const call = myPeer.call(newPeerId, stream);
-                if(call){
-                    call.on('stream', function(remoteStream) {
-                        // console.log('remoteStream arrives')
-                        setVideoStreams(currentArray => {
-                            return [...currentArray, remoteStream]
-                        })
-                    });
-                }
-
-            })
-            .catch(err => {
-                console.log('we have error', err);
-            });
-        })
-
-        
-        
-
-
-
-
-        myPeer.on('call', call => {
-            console.log('we have new call');
-            navigator.mediaDevices.getUserMedia({ audio: false, video: true })
-            .then(stream => {
-                call.answer(stream);
-                setVideoStreams(currentArray => {
-                    return [...currentArray, stream]
+        socket.on('new-user-arrived-finish', (newUserId: string, roomId: string) => {
+            if(!users.includes(newUserId)){
+                setUsers(users => {
+                    return [...users, newUserId]
                 })
-            })
-            .catch(err => {
-                console.log('we have error', err);
-            });
-        })
-
-
-        socket.on('new message received', (data: { fullName: string; receivedMessage: string; }) => {
-            console.log('new message received');
-            setMessages(currentArray => {
-                return [...currentArray, {
-                    sender:fullName,
-                    receivedMessage: data.receivedMessage
-                }]
-            })
-            setNewMessage('');
-        })
-
+            }
+        });
 
         window.onbeforeunload = () => {
             const currentStreamID = localStorage.getItem('currentStreamId');
             socket.emit('userExited', currentStreamID, roomId);
         }
 
+
+    }, [])
+
+    
+    
+    useEffect(() => {
+        
+        if(typeof(roomId) === 'undefined' || fullName === '') return;
+
+        myPeer.on('open', (peerID) => {
+            localStorage.setItem('currentPeer', peerID);
+            socket.emit('new-user-arriving-start', peerID, roomId)
+        });
+
+        myPeer.on('call', call => {
+            console.log('we have new call');
+            navigator.mediaDevices.getUserMedia({ audio: false, video: true })
+            .then(stream => {
+                call.answer(stream);
+                call.on('stream', function(remoteStream) {
+                    console.log('remote stream 2', remoteStream);
+                    setVideoStreams(currentArray => {
+                        return [...currentArray, remoteStream]
+                    })
+                });
+
+              
+                
+            })
+            .catch(err => {
+                console.log('we have error', err);
+            });
+        })
+
+
+        socket.on('new message received', (data: { sender: string, receivedMessage: string; }) => {
+            let currentSender = data.sender;
+            setMessages(currentArray => {
+                return [...currentArray, {
+                    sender:currentSender,
+                    receivedMessage: data.receivedMessage
+                }]
+            })
+            setNewMessage('');
+        })
+
     }, []);
 
-    // useEffect(() => { 
-    //     socket.on('userLeft', (streamID: string) => {
-    //         console.log('user has left', streamID, videoStreams);
-    //         let currentStreams =  videoStreams.map(el => {
-    //             return el.id != streamID;
-    //         })
-    //     });
 
-    // }, [videoStreams])
+    useEffect(() => {
+        if(users.length > 0){
+            navigator.mediaDevices.getUserMedia({ audio: false, video: true })
+            .then(stream => {
+
+                localStorage.setItem('currentStreamId', stream.id);
+
+                setVideoStreams(currentArray => {
+                    return [...currentArray, stream]
+                })
+
+                // console.log('total users array', users);
+                // console.log('start to call to another users');
+                const currentPeer = localStorage.getItem('currentPeer');
+                
+                users.forEach((user) => {
+                    if(currentPeer != user){
+                        console.log('we are calling to a user', user, ' our id is', currentPeer);
+                        const call = myPeer.call(user, stream);
+                    
+                        if(call){
+                            console.log('call was made');
+                            call.on('stream', function(remoteStream) {
+                                setVideoStreams(currentArray => {
+                                    return [...currentArray, remoteStream]
+                                })
+                            });
+
+                            
+                        }
+                    }
+                    
+
+                    
+                })
+
+                
+
+                
+
+            })
+            .catch(err => {
+                console.log('we have error', err);
+            });
+        }
+    }, [users])
+
+
+ 
+
+
+    
+
+    useEffect(() => { 
+        socket.on('userLeft', (streamID: string) => {
+            console.log('user has left', streamID, videoStreams);
+            
+
+            // setVideoStreams(currentArray => {
+            //     let currentStreams =  currentArray.map(el => {
+            //         return el.id != streamID;
+            //     })
+            //     return [...currentStreams];
+            // })
+        });
+
+    }, [videoStreams])
+
+    // const modifyStreams = (newStream: MediaStream) => {
+    //     const newStreams = videoStreams.filter((stream) => {
+    //         return stream.id != newStream.id;
+    //     })
+        
+
+    //     return newStreams;
+    // }
 
 
     let videoStreamsList: any = "Loading...";
