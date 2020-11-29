@@ -34,6 +34,10 @@ io.on('connection', (socket) => {
       socket.to(roomID).emit('new message received', data);
     })
 
+    socket.on('test', (name) => {
+      socket.emit('new-user-arrived-finish2', name);
+    })
+
     socket.on("disconnect", () => {
 
     });

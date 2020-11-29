@@ -22,20 +22,36 @@ if(process.env.NODE_ENV === 'production'){
 }
 
 
-const myPeer = new Peer();
+
 
 const Call:React.FC = () => {
     const [videoStreams, setVideoStreams] = useState<MediaStream[]>([]);
     const [users, setUsers] = useState<string[]>([]);
+    const [usersNames, setUserNames] = useState<string[]>([]);
     const [newMessage, setNewMessage] = useState<string>('');
     const [messages, setMessages] = useState<Object[]>([]);
+
+    const [myPeer, setMyPeer] = useState(new Peer());
 
 
     useEffect(() => {
         socket.on('new-user-arrived-finish', (newUserId: string, userName: string, roomId: string) => {
+            console.log('new user arrives');
             if(!users.includes(newUserId)){
                 setUsers(users => {
                     return [...users, newUserId]
+                })
+                setUserNames(usernames =>{
+                    return [...usernames, userName]
+                })
+            }
+        });
+
+        socket.on('new-user-arrived-finish2', (userName: string) => {
+            console.log('new user arrives 2');
+            if(!usersNames.includes(userName)){
+                setUserNames(usernames =>{
+                    return [...usernames, userName]
                 })
             }
         });
@@ -57,13 +73,13 @@ const Call:React.FC = () => {
         
 
         myPeer.on('open', (peerID) => {
-            console.log('peer opened')
+            // console.log('peer opened')
             localStorage.setItem('currentPeer', peerID);
             socket.emit('new-user-arriving-start', peerID, roomId, fullName);
         });
 
         myPeer.on('call', call => {
-            console.log('we have new call');
+            // console.log('we have new call');
             navigator.mediaDevices.getUserMedia({ audio: true, video: true })
             .then(stream => {
                 call.answer(stream);
@@ -107,16 +123,20 @@ const Call:React.FC = () => {
 
 
     useEffect(() => {
-        if(users.length > 0){
-            console.log('we are here');
+        
+            // console.log('we are here');
             navigator.mediaDevices.getUserMedia({ audio: true, video: true })
             .then(stream => {
 
                 localStorage.setItem('currentStreamId', stream.id);
 
-                setVideoStreams(currentArray => {
-                    return [...currentArray, stream]
-                })
+
+                if(users.length === 0){
+                    setVideoStreams(currentArray => {
+                        return [...currentArray, stream]
+                    })
+                }
+                else{
 
                 // console.log('total users array', users);
                 // console.log('start to call to another users');
@@ -124,12 +144,13 @@ const Call:React.FC = () => {
                 
                 users.forEach((user) => {
                     if(currentPeer !== user){
-                        console.log('we are calling to a user', user, ' our id is', currentPeer);
+                        // console.log('we are calling to a user', user, ' our id is', currentPeer);
                         const call = myPeer.call(user, stream);
                     
                         if(call){
-                            console.log('call was made');
+                            // console.log('call was made');
                             call.on('stream', function(remoteStream) {
+                                console.log('remote stream 1');
                                 setVideoStreams(currentArray => {
                                     const newStreamArray = currentArray.filter(stream => {
                                         return stream.id !== remoteStream.id;
@@ -145,7 +166,7 @@ const Call:React.FC = () => {
 
                     
                 })
-
+            }
                 
 
                 
@@ -154,7 +175,7 @@ const Call:React.FC = () => {
             .catch(err => {
                 console.log('we have error', err);
             });
-        }
+        
     }, [users])
 
 
@@ -178,21 +199,13 @@ const Call:React.FC = () => {
 
     }, [videoStreams])
 
-    // const modifyStreams = (newStream: MediaStream) => {
-    //     const newStreams = videoStreams.filter((stream) => {
-    //         return stream.id != newStream.id;
-    //     })
-        
-
-    //     return newStreams;
-    // }
 
 
     let videoStreamsList: any = "Loading...";
 
     if (videoStreams.length > 0) {
-        console.log(videoStreams);
-        videoStreamsList = videoStreams.map((stream, idx) => <Streamer key={`stream-${idx}`} fullName={fullName} stream={stream} /> )
+        // console.log(videoStreams);
+        videoStreamsList = videoStreams.map((stream, idx) => <Streamer key={`stream-${idx}`} fullName={usersNames[idx]} stream={stream} /> )
     }
 
     const formHandler = (e:FormEvent) => {
