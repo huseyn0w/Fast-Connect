@@ -9,7 +9,7 @@ import Call from './pages/Call/Call';
 import Main from './pages/Main/Main';
 import NotFound from './pages/404/404';
 import Header from './pages/Skeleton/Header/Header';
-import Footer from './pages/Skeleton/Footer/Footer';
+// import Footer from './pages/Skeleton/Footer/Footer';
 
 
 function App() {

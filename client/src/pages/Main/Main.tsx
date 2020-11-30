@@ -11,6 +11,7 @@ import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
+import {Redirect} from 'react-router-dom';
 
 
 
@@ -54,6 +55,7 @@ const Main:React.FC = () => {
   const [createRoomInput, setCreateRoomInput] = useState('');
   const [joinRoomInput, setJoinRoomInput] = useState('');
   const [fullName, setFullName] = useState('');
+  const [redirect, setRedirect] = useState(false);
 
   const handleNewClickOpen = () => {
     setCreateRoomInput('');
@@ -86,22 +88,25 @@ const Main:React.FC = () => {
 
   const createNewConference = () => {
     if(createRoomInput && fullName){
-      localStorage.setItem('confID', createRoomInput);
+      localStorage.setItem('roomId', createRoomInput);
       localStorage.setItem('fullName', fullName);
-      history.push("/call");
+      setRedirect(true);
+      // history.push("/call");
     }
     
   }
 
   const joinConference = () => {
     if(joinRoomInput && fullName){
-      localStorage.setItem('confID', joinRoomInput);
+      localStorage.setItem('roomId', joinRoomInput);
       localStorage.setItem('fullName', fullName);
-      history.push("/call");
+      // console.log('ready to redirect');
+      setRedirect(true);
+      // history.push("/call");
     }
   }
 
-  return (
+  return !redirect ? (
     <>
       <div className="page-bg">
         <Container maxWidth="sm" component="main" className={classes.heroContent}> 
@@ -209,7 +214,7 @@ const Main:React.FC = () => {
       </Container>
       </div>
     </>
-  );
+  ) : <Redirect to="/call" />;
 }
 
 export default Main

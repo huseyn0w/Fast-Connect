@@ -8,9 +8,6 @@ import Message from './Message';
 // @ts-ignore
 const socket = io(process.env.REACT_APP_BACKEND_URL, {'sync disconnect on unload': true });
 
-const roomId = localStorage.getItem('confID') ?? undefined;
-const fullName = localStorage.getItem('fullName') ?? '';
-
 const peerDetails = {
     path: '/mypeer',
     host: '/',
@@ -27,16 +24,20 @@ if(process.env.NODE_ENV === 'production'){
 const Call:React.FC = () => {
     const [videoStreams, setVideoStreams] = useState<MediaStream[]>([]);
     const [users, setUsers] = useState<string[]>([]);
-    const [usersNames, setUserNames] = useState<string[]>([]);
+    const [userNames, setUserNames] = useState<string[]>([]);
     const [newMessage, setNewMessage] = useState<string>('');
     const [messages, setMessages] = useState<Object[]>([]);
+    const [fullName, setFullName] = useState(localStorage.getItem('fullName') ?? false);
+    const [roomId, setRoomId] = useState(localStorage.getItem('roomId') ?? false);
 
     const [myPeer, setMyPeer] = useState(new Peer());
 
 
     useEffect(() => {
+        console.log('we are users here ', users, userNames);
         socket.on('new-user-arrived-finish', (newUserId: string, userName: string, roomId: string) => {
-            console.log('new user arrives');
+            console.log('new user arrives', users);
+            
             if(!users.includes(newUserId)){
                 setUsers(users => {
                     return [...users, newUserId]
@@ -47,27 +48,29 @@ const Call:React.FC = () => {
             }
         });
 
-        socket.on('new-user-arrived-finish2', (userName: string) => {
-            console.log('new user arrives 2');
-            if(!usersNames.includes(userName)){
-                setUserNames(usernames =>{
-                    return [...usernames, userName]
-                })
-            }
-        });
+        
 
         window.onbeforeunload = () => {
             const currentStreamID = localStorage.getItem('currentStreamId');
             socket.emit('userExited', currentStreamID, roomId);
         }
 
-
+        
     }, [])
+
+    useEffect(() => {
+        socket.on('new-user-arrived-finish2', (userName: string) => {
+            console.log('hehey');
+            setUserNames(usernames =>{
+                return [...usernames, userName]
+            })
+        });
+    }, [userNames])
 
     
     
     useEffect(() => {
-        
+        console.log('hehey', fullName);
         if(typeof(roomId) === 'undefined' || fullName === '') return;
 
         
@@ -84,7 +87,6 @@ const Call:React.FC = () => {
             .then(stream => {
                 call.answer(stream);
                 call.on('stream', function(remoteStream) {
-                    console.log('remote stream 2', remoteStream);
                     setVideoStreams(currentArray => {
                         const newStreamArray = currentArray.filter(stream => {
                             return stream.id !== remoteStream.id;
@@ -119,10 +121,14 @@ const Call:React.FC = () => {
         // }
 
 
-    }, []);
+    }, [fullName]);
 
 
     useEffect(() => {
+
+        console.log('hehey 2', fullName);
+
+        if(typeof(roomId) === 'undefined' || fullName === '') return;
         
             // console.log('we are here');
             navigator.mediaDevices.getUserMedia({ audio: true, video: true })
@@ -146,9 +152,9 @@ const Call:React.FC = () => {
                     if(currentPeer !== user){
                         // console.log('we are calling to a user', user, ' our id is', currentPeer);
                         const call = myPeer.call(user, stream);
-                    
+                        
                         if(call){
-                            // console.log('call was made');
+                            socket.emit('test', fullName, roomId);
                             call.on('stream', function(remoteStream) {
                                 console.log('remote stream 1');
                                 setVideoStreams(currentArray => {
@@ -176,7 +182,7 @@ const Call:React.FC = () => {
                 console.log('we have error', err);
             });
         
-    }, [users])
+    }, [users, fullName])
 
 
  
@@ -205,7 +211,7 @@ const Call:React.FC = () => {
 
     if (videoStreams.length > 0) {
         // console.log(videoStreams);
-        videoStreamsList = videoStreams.map((stream, idx) => <Streamer key={`stream-${idx}`} fullName={usersNames[idx]} stream={stream} /> )
+        videoStreamsList = videoStreams.map((stream, idx) => <Streamer key={`stream-${idx}`} fullName={userNames[idx]} stream={stream} /> )
     }
 
     const formHandler = (e:FormEvent) => {
