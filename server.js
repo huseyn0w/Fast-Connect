@@ -17,11 +17,12 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }))
 
+
 io.on('connection', (socket) => {
 
     socket.on('new-user-arriving-start', (peerID, roomID, userName) => {
       socket.join(roomID);
-      io.to(roomID).emit('new-user-arrived-finish', peerID, userName, roomID);
+      io.to(roomID).emit('new-user-arrived-finish', peerID, roomID, userName);
     })
 
     socket.on('userExited', (peerID, roomID) => {
@@ -44,9 +45,9 @@ io.on('connection', (socket) => {
 
 });
 
-// app.get('/', (req, res) => {
-//   res.send('Welcome to the Fast Connect Backend ;)');
-// })
+app.get('/', (req, res) => {
+  res.send('Welcome to the Fast Connect Backend ;)');
+})
 
 app.use('/mypeer', ExpressPeerServer(server, options));
 

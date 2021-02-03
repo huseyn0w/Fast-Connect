@@ -86,7 +86,8 @@ const Main:React.FC = () => {
     setCreateRoomInput(uniqueID);
   }
 
-  const createNewConference = () => {
+  const createNewConference = (e:React.SyntheticEvent) => {
+    e.preventDefault();
     if(createRoomInput && fullName){
       localStorage.setItem('roomId', createRoomInput);
       localStorage.setItem('fullName', fullName);
@@ -96,7 +97,8 @@ const Main:React.FC = () => {
     
   }
 
-  const joinConference = () => {
+  const joinConference = (e:React.SyntheticEvent) => {
+    e.preventDefault();
     if(joinRoomInput && fullName){
       localStorage.setItem('roomId', joinRoomInput);
       localStorage.setItem('fullName', fullName);
@@ -105,6 +107,7 @@ const Main:React.FC = () => {
       // history.push("/call");
     }
   }
+
 
   return !redirect ? (
     <>
@@ -130,42 +133,45 @@ const Main:React.FC = () => {
               </Button>
               <Dialog open={open} onClose={handleNewClose} aria-labelledby="form-dialog-title">
                 <DialogTitle id="form-dialog-title">Create the conference</DialogTitle>
-                <DialogContent>
-                  <DialogContentText>
-                    To create new conference, enter Full Name, Unique ID, or generate new one from the button below
-                  </DialogContentText>
-                  <TextField
-                    autoFocus
-                    margin="dense"
-                    id="new-room"
-                    label="Room ID"
-                    type="text"
-                    value={createRoomInput}
-                    onChange={(e) => setCreateRoomInput(e.target.value)}
-                    fullWidth
-                  />
-                  <TextField
-                    autoFocus
-                    margin="dense"
-                    id="full-name"
-                    label="Full Name"
-                    type="text"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    fullWidth
-                  />
-                </DialogContent>
-                <DialogActions>
-                  <Button onClick={handleNewClose} color="primary">
-                    Cancel
-                  </Button>
-                  <Button onClick={generateID} color="primary">
-                    Generate ID
-                  </Button>
-                  <Button onClick={createNewConference} color="primary">
-                    Start new conference
-                  </Button>
-                </DialogActions>
+                <form onSubmit={createNewConference}>
+                  <DialogContent>
+                    <DialogContentText>
+                      To create new conference, enter Full Name, Unique ID, or generate new one from the button below
+                    </DialogContentText>
+                    
+                    <TextField
+                      autoFocus
+                      margin="dense"
+                      id="new-room"
+                      label="Room ID"
+                      type="text"
+                      value={createRoomInput}
+                      onChange={(e) => setCreateRoomInput(e.target.value)}
+                      fullWidth
+                    />
+                    <TextField
+                      autoFocus
+                      margin="dense"
+                      id="full-name"
+                      label="Full Name"
+                      type="text"
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                      fullWidth
+                    />
+                  </DialogContent>
+                  <DialogActions>
+                    <Button onClick={handleNewClose} color="primary">
+                      Cancel
+                    </Button>
+                    <Button onClick={generateID} color="primary">
+                      Generate ID
+                    </Button>
+                    <Button type="submit" onClick={createNewConference} color="primary">
+                      Start new conference
+                    </Button>
+                  </DialogActions>
+                </form>
               </Dialog>
             </Grid>
             <Grid item>
@@ -174,39 +180,41 @@ const Main:React.FC = () => {
               </Button>
               <Dialog open={existOpen} onClose={handleExistClose} aria-labelledby="form-dialog-title">
                 <DialogTitle id="form-dialog-title">Join the conference</DialogTitle>
-                <DialogContent>
-                  <DialogContentText>
-                    Please Enter conversation room ID and Full Name to join.
-                  </DialogContentText>
-                  <TextField
-                    autoFocus
-                    margin="dense"
-                    id="exist-room"
-                    label="Room ID"
-                    type="text"
-                    value={joinRoomInput}
-                    onChange={(e) => setJoinRoomInput(e.target.value)}
-                    fullWidth
-                  />
-                  <TextField
-                    autoFocus
-                    margin="dense"
-                    id="full-name-2"
-                    label="Full Name"
-                    type="text"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    fullWidth
-                  />
-                </DialogContent>
-                <DialogActions>
-                  <Button onClick={handleExistClose} color="primary">
-                    Cancel
-                  </Button>
-                  <Button onClick={joinConference} color="primary">
-                    Join conference
-                  </Button>
-                </DialogActions>
+                <form onSubmit={joinConference}>
+                  <DialogContent>
+                    <DialogContentText>
+                      Please Enter conversation room ID and Full Name to join.
+                    </DialogContentText>
+                    <TextField
+                      autoFocus
+                      margin="dense"
+                      id="exist-room"
+                      label="Room ID"
+                      type="text"
+                      value={joinRoomInput}
+                      onChange={(e) => setJoinRoomInput(e.target.value)}
+                      fullWidth
+                    />
+                    <TextField
+                      autoFocus
+                      margin="dense"
+                      id="full-name-2"
+                      label="Full Name"
+                      type="text"
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                      fullWidth
+                    />
+                  </DialogContent>
+                  <DialogActions>
+                    <Button onClick={handleExistClose} color="primary">
+                      Cancel
+                    </Button>
+                    <Button type="submit" onClick={joinConference} color="primary">
+                      Join conference
+                    </Button>
+                  </DialogActions>
+                </form>
               </Dialog>
             </Grid>
           </Grid>

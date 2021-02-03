@@ -4,6 +4,7 @@ import {Redirect} from 'react-router-dom';
 import Streamer from './Streamer';
 import io from "socket.io-client";
 import Message from './Message';
+import { v4 as uuidv4 } from 'uuid';
 
 // @ts-ignore
 const socket = io(process.env.REACT_APP_BACKEND_URL, {'sync disconnect on unload': true });
@@ -18,90 +19,80 @@ if(process.env.NODE_ENV === 'production'){
     peerDetails.port = process.env.PORT || 5000;
 }
 
+interface ConnectParams {
+    audio: boolean;
+    video: boolean;
+}
 
 
 
 const Call:React.FC = () => {
-    const [videoStreams, setVideoStreams] = useState<MediaStream[]>([]);
-    const [users, setUsers] = useState<string[]>([]);
+    const [streamOptions, setStreamOptions] = useState<ConnectParams>({
+        audio: false,
+        video: true
+    })
+    const [videoStreams, setVideoStreams] = useState<MediaStream[]>([])
     const [userNames, setUserNames] = useState<string[]>([]);
     const [newMessage, setNewMessage] = useState<string>('');
     const [messages, setMessages] = useState<Object[]>([]);
     const [fullName, setFullName] = useState(localStorage.getItem('fullName') ?? false);
     const [roomId, setRoomId] = useState(localStorage.getItem('roomId') ?? false);
-
-    const [myPeer, setMyPeer] = useState(new Peer());
-
-
-    useEffect(() => {
-        console.log('we are users here ', users, userNames);
-        socket.on('new-user-arrived-finish', (newUserId: string, userName: string, roomId: string) => {
-            console.log('new user arrives', users);
-            
-            if(!users.includes(newUserId)){
-                setUsers(users => {
-                    return [...users, newUserId]
-                })
-                setUserNames(usernames =>{
-                    return [...usernames, userName]
-                })
-            }
-        });
-
-        
-
-        window.onbeforeunload = () => {
-            const currentStreamID = localStorage.getItem('currentStreamId');
-            socket.emit('userExited', currentStreamID, roomId);
-        }
-
-        
-    }, [])
-
-    useEffect(() => {
-        socket.on('new-user-arrived-finish2', (userName: string) => {
-            console.log('hehey');
-            setUserNames(usernames =>{
-                return [...usernames, userName]
-            })
-        });
-    }, [userNames])
-
     
-    
+    const myPeerUniqueID = uuidv4();
+    const myPeer = new Peer(myPeerUniqueID)
+
     useEffect(() => {
-        console.log('hehey', fullName);
-        if(typeof(roomId) === 'undefined' || fullName === '') return;
 
         
+        
+        socket.emit('new-user-arriving-start', myPeerUniqueID, roomId, fullName);
 
-        myPeer.on('open', (peerID) => {
-            // console.log('peer opened')
-            localStorage.setItem('currentPeer', peerID);
-            socket.emit('new-user-arriving-start', peerID, roomId, fullName);
-        });
 
-        myPeer.on('call', call => {
-            // console.log('we have new call');
-            navigator.mediaDevices.getUserMedia({ audio: true, video: true })
+        socket.on('new-user-arrived-finish', (peerID:string, roomID:string, userName:string) => {
+            navigator.mediaDevices.getUserMedia(streamOptions)
             .then(stream => {
-                call.answer(stream);
-                call.on('stream', function(remoteStream) {
-                    setVideoStreams(currentArray => {
-                        const newStreamArray = currentArray.filter(stream => {
-                            return stream.id !== remoteStream.id;
-                        })
-                        return [...newStreamArray, remoteStream];
-                    })
-                });
 
-              
+                localStorage.setItem('currentStreamId', stream.id);
                 
+                if(peerID == myPeerUniqueID){
+                    setVideoStreams([stream])
+                    setUserNames([userName])
+                }
+                else{
+                    console.log('start to call');
+                    var call = myPeer.call(peerID, stream);
+                    call.on('stream', function(remoteStream) {
+                        if(stream.id !== remoteStream.id){
+                            setVideoStreams((streams) => {
+                                const streamsCopy = [...streams];
+                                streamsCopy.push(remoteStream);
+                                return streamsCopy;
+                            })
+                        }
+                    });
+                }
+
+                myPeer.on('call', function(call) {
+                    call.answer(stream);
+                    call.on('stream', function(remoteStream) {
+                        if(stream.id !== remoteStream.id){
+                            setVideoStreams((streams) => {
+                                const streamsCopy = [...streams];
+                                streamsCopy.push(remoteStream)
+                                return streamsCopy;
+                            })
+                        }
+                    });
+                    
+                });
+                
+
             })
             .catch(err => {
                 console.log('we have error', err);
             });
         })
+
 
 
         socket.on('new message received', (data: { sender: string, receivedMessage: string; }) => {
@@ -115,97 +106,30 @@ const Call:React.FC = () => {
             setNewMessage('');
         })
 
-        // window.onbeforeunload = () => {
-        //     const currentStreamID = localStorage.getItem('currentStreamId');
-        //     socket.emit('userExited', currentStreamID, roomId);
-        // }
-
-
-    }, [fullName]);
-
-
-    useEffect(() => {
-
-        console.log('hehey 2', fullName);
-
-        if(typeof(roomId) === 'undefined' || fullName === '') return;
-        
-            // console.log('we are here');
-            navigator.mediaDevices.getUserMedia({ audio: true, video: true })
-            .then(stream => {
-
-                localStorage.setItem('currentStreamId', stream.id);
-
-
-                if(users.length === 0){
-                    setVideoStreams(currentArray => {
-                        return [...currentArray, stream]
-                    })
-                }
-                else{
-
-                // console.log('total users array', users);
-                // console.log('start to call to another users');
-                const currentPeer = localStorage.getItem('currentPeer');
-                
-                users.forEach((user) => {
-                    if(currentPeer !== user){
-                        // console.log('we are calling to a user', user, ' our id is', currentPeer);
-                        const call = myPeer.call(user, stream);
-                        
-                        if(call){
-                            socket.emit('test', fullName, roomId);
-                            call.on('stream', function(remoteStream) {
-                                console.log('remote stream 1');
-                                setVideoStreams(currentArray => {
-                                    const newStreamArray = currentArray.filter(stream => {
-                                        return stream.id !== remoteStream.id;
-                                    })
-                                    return [...newStreamArray, remoteStream];
-                                })
-                            });
-
-                            
-                        }
-                    }
-                    
-
-                    
+        socket.on('userLeft', (streamID: string) => {
+            setVideoStreams(currentArray => {
+                let currentStreams =  currentArray.filter(el => {
+                    return el.id != streamID;
                 })
-            }
-                
-
-                
-
+                return [...currentStreams];
             })
-            .catch(err => {
-                console.log('we have error', err);
-            });
-        
-    }, [users, fullName])
+        });
 
 
- 
+        window.onbeforeunload = () => {
+            const currentStreamID = localStorage.getItem('currentStreamId');
+            socket.emit('userExited', currentStreamID, roomId);
+        }
+
+
+       
+
+    }, [])
+
 
 
     
-
-    useEffect(() => { 
-        socket.on('userLeft', (streamID: string) => {
-            console.log('user has left', streamID, videoStreams);
-            
-
-            // setVideoStreams(currentArray => {
-            //     let currentStreams =  currentArray.map(el => {
-            //         return el.id != streamID;
-            //     })
-            //     return [...currentStreams];
-            // })
-        });
-
-    }, [videoStreams])
-
-
+    
 
     let videoStreamsList: any = "Loading...";
 

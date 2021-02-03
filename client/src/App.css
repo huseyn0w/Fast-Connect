@@ -6,6 +6,14 @@
   box-sizing:border-box;
 }
 
+body{
+  background: radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%);
+  overflow: hidden;
+  color:#fff;
+  position: relative;
+  height:100vh;
+}
+
 div{
   box-sizing:border-box;
 }
@@ -23,13 +31,7 @@ div{
   text-decoration: none;
 }
 
-.page-bg {
-  height: 100%;
-  background: radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%);
-  overflow: hidden;
-  color:#fff;
-  position: relative;
-}
+
 
 #stars {
   position: absolute;
@@ -87,7 +89,7 @@ div{
 }
 
 #title {
-  position: absolute;
+  position: fixed;
   top: 50%;
   left: 0;
   right: 0;
