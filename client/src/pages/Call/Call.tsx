@@ -135,7 +135,7 @@ const Call:React.FC = () => {
 
     if (videoStreams.length > 0) {
         // console.log(videoStreams);
-        videoStreamsList = videoStreams.map((stream, idx) => <Streamer key={`stream-${idx}`} fullName={userNames[idx]} stream={stream} /> )
+        videoStreamsList = videoStreams.map((stream, idx) => <Streamer key={`stream-${idx}`} fullName={userNames[idx]} streamKey={idx} stream={stream} /> )
     }
 
     const formHandler = (e:FormEvent) => {

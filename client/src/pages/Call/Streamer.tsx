@@ -7,9 +7,10 @@ import VideocamOffRoundedIcon from '@material-ui/icons/VideocamOffRounded';
 interface videoStreamInterface {
     stream: MediaStream,
     fullName: string,
+    streamKey: number
 }
 
-const Streamer:React.FC<videoStreamInterface> = ({stream, fullName}:videoStreamInterface) => {
+const Streamer:React.FC<videoStreamInterface> = ({stream, streamKey, fullName}:videoStreamInterface) => {
 
     const [videoMuted, setVideoMuted] = useState<Boolean>(false)
     const [audioMuted, setAudioMuted] = useState<Boolean>(false)
@@ -53,10 +54,12 @@ const Streamer:React.FC<videoStreamInterface> = ({stream, fullName}:videoStreamI
         setVideoMuted(!videoMuted);
     }
 
+    console.log(streamKey)
+
     return (
         <div className="stream-item">
             <h2>Im {fullName}</h2>
-            <video ref={videoEl} muted={audioMuted ? true : false} autoPlay={true} />
+            <video ref={videoEl} muted={streamKey == 0 ? true : false} autoPlay={true} />
             <div className="stream-buttons">
                 <button type="button" onClick={audioHandler}>
                     {audioMuted ? <MicOffRoundedIcon /> : <MicRoundedIcon />}
