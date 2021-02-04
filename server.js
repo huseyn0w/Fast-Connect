@@ -45,9 +45,9 @@ io.on('connection', (socket) => {
 
 });
 
-app.get('/', (req, res) => {
-  res.send('Welcome to the Fast Connect Backend ;)');
-})
+// app.get('/', (req, res) => {
+//   res.send('Welcome to the Fast Connect Backend ;)');
+// })
 
 app.use('/mypeer', ExpressPeerServer(server, options));
 
