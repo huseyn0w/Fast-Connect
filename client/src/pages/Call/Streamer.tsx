@@ -54,12 +54,20 @@ const Streamer:React.FC<videoStreamInterface> = ({stream, streamKey, fullName}:v
         setVideoMuted(!videoMuted);
     }
 
-    console.log(streamKey)
+    // console.log(streamKey)
+
+    let muteAudio = false;
+
+    if(streamKey == 0){
+        muteAudio = true;
+    }
+
+    // console.log(muteAudio)
 
     return (
         <div className="stream-item">
             <h2>Im {fullName}</h2>
-            <video ref={videoEl} muted={streamKey == 0 ? true : false} autoPlay={true} />
+            <video ref={videoEl} muted={muteAudio} autoPlay={true} />
             <div className="stream-buttons">
                 <button type="button" onClick={audioHandler}>
                     {audioMuted ? <MicOffRoundedIcon /> : <MicRoundedIcon />}

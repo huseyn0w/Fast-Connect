@@ -28,7 +28,7 @@ interface ConnectParams {
 
 const Call:React.FC = () => {
     const [streamOptions, setStreamOptions] = useState<ConnectParams>({
-        audio: false,
+        audio: true,
         video: true
     })
     const [videoStreams, setVideoStreams] = useState<MediaStream[]>([])
