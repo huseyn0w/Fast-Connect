@@ -32,6 +32,7 @@ const Call:React.FC = () => {
         video: true
     })
     const [videoStreams, setVideoStreams] = useState<MediaStream[]>([])
+    const [myStream, setMyStream] = useState<MediaStream>();
     const [userNames, setUserNames] = useState<string[]>([]);
     const [newMessage, setNewMessage] = useState<string>('');
     const [messages, setMessages] = useState<Object[]>([]);
@@ -40,6 +41,8 @@ const Call:React.FC = () => {
     
     const myPeerUniqueID = uuidv4();
     const myPeer = new Peer(myPeerUniqueID)
+    //@ts-ignore
+    let getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
 
     useEffect(() => {
 
@@ -49,49 +52,77 @@ const Call:React.FC = () => {
 
 
         socket.on('new-user-arrived-finish', (peerID:string, roomID:string, userName:string) => {
-            navigator.mediaDevices.getUserMedia(streamOptions)
-            .then(stream => {
+            
+            
+            getUserMedia(streamOptions, function(stream) {
+                setMyStream(stream);
 
                 localStorage.setItem('currentStreamId', stream.id);
                 
                 if(peerID == myPeerUniqueID){
-                    setVideoStreams([stream])
                     setUserNames([userName])
                 }
                 else{
-                    console.log('start to call');
+                    // console.log('im calling');
                     var call = myPeer.call(peerID, stream);
                     call.on('stream', function(remoteStream) {
+                        // console.log('my current Stream', stream)
+                        // console.log('i receive a stream', remoteStream)
                         if(stream.id !== remoteStream.id){
                             setVideoStreams((streams) => {
                                 const streamsCopy = [...streams];
-                                streamsCopy.push(remoteStream);
+                                const found = streamsCopy.some(el => el.id === remoteStream.id);
+                                if(!found) streamsCopy.push(remoteStream)
                                 return streamsCopy;
                             })
+                            
                         }
                     });
                 }
-
-                myPeer.on('call', function(call) {
-                    call.answer(stream);
-                    call.on('stream', function(remoteStream) {
-                        if(stream.id !== remoteStream.id){
-                            setVideoStreams((streams) => {
-                                const streamsCopy = [...streams];
-                                streamsCopy.push(remoteStream)
-                                return streamsCopy;
-                            })
-                        }
-                    });
-                    
-                });
+                
                 
 
-            })
-            .catch(err => {
-                console.log('we have error', err);
-            });
+              }, function(err) {
+                console.log('Failed to get local stream' ,err);
+              });
+            
+            
+
         })
+
+
+        
+        myPeer.on('call', function(call) {
+            getUserMedia({video: true, audio: true}, function(stream) {
+                setMyStream(stream);
+
+                localStorage.setItem('currentStreamId', stream.id);
+                call.answer(stream);
+                call.on('stream', function(remoteStream) {
+                    // console.log('remote stream', remoteStream)
+                    // console.log('my stream', stream)
+                    if(myStream?.id !== remoteStream.id){
+                        console.log(videoStreams);
+                        
+                        // console.log(found);
+                        setVideoStreams((streams) => {
+                            // console.log(streams);
+                            const streamsCopy = [...streams];
+                            
+                            const found = streamsCopy.some(el => el.id === remoteStream.id);
+                            if(!found) streamsCopy.push(remoteStream)
+                            console.log('b', streamsCopy);
+                            return streamsCopy;
+                        })
+                        
+                    }
+                });
+            }, function(err) {
+                console.log('Failed to get local stream' ,err);
+            });
+        });
+
+
 
 
 
@@ -131,12 +162,14 @@ const Call:React.FC = () => {
     
     
 
-    let videoStreamsList: any = "Loading...";
+    let videoStreamsList;
 
-    if (videoStreams.length > 0) {
-        // console.log(videoStreams);
-        videoStreamsList = videoStreams.map((stream, idx) => <Streamer key={`stream-${idx}`} fullName={userNames[idx]} streamKey={idx} stream={stream} /> )
-    }
+    videoStreamsList = (
+        <>
+            {myStream && (<Streamer fullName={'ELman'} muted={true} stream={myStream} /> ) }
+            {videoStreams.length > 0 && (videoStreams.map((stream, idx) => <Streamer key={`stream-${idx}`} fullName={userNames[idx]} muted={false} stream={stream} /> ))}
+        </>
+    )
 
     const formHandler = (e:FormEvent) => {
         e.preventDefault();
