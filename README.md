@@ -4,7 +4,7 @@
 
 This application is created for creating fast and standalone video conferences without any registration.
 
-[Demo](https://https://serene-refuge-81999.herokuapp.com/)
+[Demo](https://serene-refuge-81999.herokuapp.com/)
 
 [My Website](https://huseyn0w.github.io/)
 
