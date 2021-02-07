@@ -30,7 +30,7 @@ io.on('connection', (socket) => {
     })
 
     socket.on('userExited', (peerID, roomID) => {
-      socket.leave(roomID);
+      socket.leave(roomID,);
       io.to(roomID).emit('userLeft', peerID);
     })
 
@@ -41,9 +41,16 @@ io.on('connection', (socket) => {
 
 
     socket.on('screen-share-start', (roomId, stream) => {
-      // console.log(roomId, stream)
       socket.to(roomId).emit('screen-share-receive', stream)
     })  
+
+    socket.on('screen-share-top', (roomID, streamID) => {
+      socket.to(roomID).emit('screen-share-stop-done', streamID)
+    })
+
+    socket.on('sendMyPeer', (roomID, peerID) => {
+      socket.to(roomID).emit('receiveMyPeer', peerID)
+    })
 
     socket.on("disconnect", () => {
 

@@ -1,4 +1,6 @@
 import React, {useState, useEffect, FormEvent} from 'react';
+import ScreenShareIcon from '@material-ui/icons/ScreenShare';
+import StopScreenShareIcon from '@material-ui/icons/StopScreenShare';
 import Peer from 'peerjs';
 import {Redirect} from 'react-router-dom';
 import Streamer from './Streamer';
@@ -31,7 +33,12 @@ const Call:React.FC = () => {
         audio: true,
         video: true
     })
+
+    const myPeerUniqueID = uuidv4();
+    
+
     const [videoStreams, setVideoStreams] = useState<MediaStream[]>([])
+    const [piersArray, setPiersArray] = useState<string[]>([]);
     const [myStream, setMyStream] = useState<MediaStream>();
     const [userNames, setUserNames] = useState<string[]>([]);
     const [newMessage, setNewMessage] = useState<string>('');
@@ -40,11 +47,11 @@ const Call:React.FC = () => {
     const [roomId, setRoomId] = useState(localStorage.getItem('roomId') ?? false);
     const screenVideoRef =  React.createRef<HTMLVideoElement>();
     const [startSharing, setStartSharing] = useState<Boolean>(false)
+    const [screenStreamID, setScreenStreamID] =  useState<string>();
     const [screenStream, setScreenStream] =  useState<MediaStream>();
 
-    
-    const myPeerUniqueID = uuidv4();
     const myPeer = new Peer(myPeerUniqueID)
+    
     //@ts-ignore
     let getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
 
@@ -55,8 +62,19 @@ const Call:React.FC = () => {
         socket.emit('new-user-arriving-start', myPeerUniqueID, roomId, fullName);
 
 
-        socket.on('new-user-arrived-finish', (peerID:string, roomID:string, userName:string) => {
         
+
+
+        socket.on('new-user-arrived-finish', (peerID:string, roomID:string, userName:string) => {
+            
+
+            setPiersArray((peers) => {
+                const streamsCopy = [...peers];
+                const found = streamsCopy.some(el => el === peerID);
+                if(!found && peerID !== myPeerUniqueID) streamsCopy.push(peerID)
+
+                return streamsCopy;
+            })
         
         
         
@@ -76,6 +94,8 @@ const Call:React.FC = () => {
                 
                 
                 if(peerID !== myPeerUniqueID){
+
+                    socket.emit('sendMyPeer', roomID, myPeerUniqueID);
                     var call = myPeer.call(peerID, stream);
                     call.on('stream', function(remoteStream) {
                         if(stream.id !== remoteStream.id){
@@ -99,7 +119,7 @@ const Call:React.FC = () => {
 
 
               myPeer.on('call', function(call) {
-                getUserMedia({video: true, audio: true}, function(stream) {
+                  getUserMedia({video: true, audio: true}, function(stream) {
                     setMyStream(stream);
     
                     localStorage.setItem('currentStreamId', stream.id);
@@ -134,7 +154,14 @@ const Call:React.FC = () => {
 
 
         
-       
+        socket.on('receiveMyPeer', (peer: string) => {
+            setPiersArray((peers) => {
+                const streamsCopy = [...peers];
+                const found = streamsCopy.some(el => el === peer);
+                if(!found && peer !== myPeerUniqueID) streamsCopy.push(peer)
+                return streamsCopy;
+            })
+        })
 
 
         socket.on('newUserName', (userName: string) => {
@@ -143,7 +170,7 @@ const Call:React.FC = () => {
                     const userNamesCopy = [...userNames];
                     const found = userNamesCopy.some(el => el === userName);
                     if(!found) userNamesCopy.push(userName)
-    
+                    
                     return userNamesCopy;
                })
             }
@@ -161,6 +188,19 @@ const Call:React.FC = () => {
             setNewMessage('');
         })
 
+
+
+        socket.on('screen-share-stop-done', (streamID: string) => {
+            setVideoStreams(streams => {
+                const streamsCopy = streams.filter(el => {
+                    return el.id !== streamID
+                }) 
+                return streamsCopy;
+            })
+        })
+
+        
+
         socket.on('userLeft', (streamID: string) => {
             setVideoStreams(currentArray => {
                 let currentStreams =  currentArray.filter(el => {
@@ -170,15 +210,7 @@ const Call:React.FC = () => {
             })
         });
 
-        socket.on('screen-share-receive', (stream: MediaStream) => {
-            console.log('slam');
-            try {
-                setScreenStream(stream);
-
-            } catch (err) {
-            console.error("Error: " + err);
-            }
-        })
+        
 
 
         window.onbeforeunload = () => {
@@ -197,9 +229,7 @@ const Call:React.FC = () => {
 
     useEffect(() => {
         if(screenStream){
-            // console.log('we are video', screenVideoRef);
             if(screenVideoRef?.current){
-                // console.log('im here')
                 screenVideoRef.current.srcObject = screenStream;
                 screenVideoRef.current.onloadedmetadata = function(e) {
                     if(screenVideoRef?.current){
@@ -215,33 +245,36 @@ const Call:React.FC = () => {
     const shareScreenHandler = async () => {
 
         if(startSharing && screenStream){
+            socket.emit('screen-share-top', roomId, screenStream.id);
             const tracks = screenStream.getTracks();
             for( var i = 0 ; i < tracks.length ; i++ ) tracks[i].stop();
             
             setStartSharing(false)
             setScreenStream(undefined);
             
-            socket.emit('screen-share-start', roomId, {share:false});
+            
             return;
         }
 
-        setStartSharing(true);
+       
         
-        let captureStream = null;
+        
       
         try {
-        // @ts-ignore
-          captureStream = await navigator.mediaDevices.getDisplayMedia({video:true, audio: false});
-          console.log(captureStream)
-          const data = {
-            share:true, stream: captureStream
-          }
-          console.log(data, 'data that im sending')
-          socket.emit('screen-share-start', roomId, data);
-         
-          setScreenStream(captureStream);
+            // @ts-ignore
+            let captureStream = await navigator.mediaDevices.getDisplayMedia({video:true, audio: false});
 
-          
+            socket.emit('screen-share-start', roomId, captureStream.id);
+
+            setStartSharing(true);
+            
+            setScreenStream(captureStream);
+
+            if(piersArray.length > 0){
+                piersArray.forEach(peer => {
+                    myPeer.call(peer, captureStream)
+                })
+            }
           
         } catch (err) {
           console.error("Error: " + err);
@@ -250,6 +283,19 @@ const Call:React.FC = () => {
         // myPeer.call(myUserId, captureStream);
       };
     
+    const startShare = (
+        <div className="screen-share">
+            Share screen
+            <ScreenShareIcon />
+        </div>
+    )
+
+    const stopShare = (
+        <div className="screen-share">
+            Stop share screen
+            <StopScreenShareIcon />
+        </div>
+    )
     
 
     let videoStreamsList;
@@ -258,12 +304,7 @@ const Call:React.FC = () => {
         <>
             {myStream && (<Streamer fullName={fullName ?? 'User 1'} muted={true} stream={myStream} /> ) }
             {videoStreams.length > 0 && (videoStreams.map((stream, idx) => <Streamer key={`stream-${idx}`} fullName={userNames[idx] ?? `User ${idx + 1}`} muted={false} stream={stream} /> ))}
-            <button onClick={shareScreenHandler}>{startSharing ? 'Stop Share' : 'Start Share'}</button>
-            {startSharing && (
-                <div className="stream-item">
-                    <video ref={screenVideoRef} autoPlay={true} />
-                </div>
-            )}
+            
         </>
     )
 
@@ -283,13 +324,19 @@ const Call:React.FC = () => {
 
     return roomId  ? 
         <div className="AppCover">
+            
             <div className="video-streams">
-                {videoStreamsList}
+                <div className="streamsCover">
+                    {videoStreamsList}
+                </div>
             </div>
             <div className="video-sidebar">
                 <div className="room-headline">
                     <div>Copy and share the room ID in order to join the conference</div>
                     <strong>ROOM ID: {roomId}</strong>
+                </div>
+                <div className="screenShareCover">
+                    <button onClick={shareScreenHandler}>{startSharing ? stopShare: startShare}</button>
                 </div>
                 <div className="messages">
                     {messages.length > 0 ? 

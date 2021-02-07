@@ -158,6 +158,21 @@ video{
   height:100%;
 }
 
+.screenShareCover{
+  width:100%;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 15px;
+}
+
+.streamsCover{
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-around;
+  width:100%;
+
+}
+
 .video-sidebar{
   /* position: fixed; */
   /* top: 0;
@@ -262,4 +277,19 @@ video{
 
 .input-area input::-ms-input-placeholder { /* Microsoft Edge */
   color: #fff;
+}
+
+.screen-share{
+  border: none;
+  outline:none;
+  background-color: blue;
+  color:#fff;
+  display: flex;
+  align-items:center;
+  cursor: pointer;
+  padding: 15px;
+}
+
+.screen-share svg{
+  margin-left: 15px;
 }
