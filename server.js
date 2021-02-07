@@ -25,6 +25,10 @@ io.on('connection', (socket) => {
       io.to(roomID).emit('new-user-arrived-finish', peerID, roomID, userName);
     })
 
+    socket.on('newUserName', (roomID, userName) => {
+      io.to(roomID).emit('newUserName', userName);
+    })
+
     socket.on('userExited', (peerID, roomID) => {
       socket.leave(roomID);
       io.to(roomID).emit('userLeft', peerID);
@@ -35,9 +39,11 @@ io.on('connection', (socket) => {
       socket.to(roomID).emit('new message received', data);
     })
 
-    socket.on('test', (name, room) => {
-      socket.to(room).emit('new-user-arrived-finish2', name);
-    })
+
+    socket.on('screen-share-start', (roomId, stream) => {
+      // console.log(roomId, stream)
+      socket.to(roomId).emit('screen-share-receive', stream)
+    })  
 
     socket.on("disconnect", () => {
 

@@ -36,8 +36,12 @@ const Call:React.FC = () => {
     const [userNames, setUserNames] = useState<string[]>([]);
     const [newMessage, setNewMessage] = useState<string>('');
     const [messages, setMessages] = useState<Object[]>([]);
-    const [fullName, setFullName] = useState(localStorage.getItem('fullName') ?? false);
+    const [fullName, setFullName] = useState(localStorage.getItem('fullName') ?? '');
     const [roomId, setRoomId] = useState(localStorage.getItem('roomId') ?? false);
+    const screenVideoRef =  React.createRef<HTMLVideoElement>();
+    const [startSharing, setStartSharing] = useState<Boolean>(false)
+    const [screenStream, setScreenStream] =  useState<MediaStream>();
+
     
     const myPeerUniqueID = uuidv4();
     const myPeer = new Peer(myPeerUniqueID)
@@ -52,22 +56,28 @@ const Call:React.FC = () => {
 
 
         socket.on('new-user-arrived-finish', (peerID:string, roomID:string, userName:string) => {
-            
+        
+        
+        
+        
+            if(!fullName){
+                localStorage.setItem('fullName', userName)
+                setFullName(userName)
+            }
+
+            socket.emit('newUserName', roomId, fullName)
+
             
             getUserMedia(streamOptions, function(stream) {
                 setMyStream(stream);
 
                 localStorage.setItem('currentStreamId', stream.id);
+
                 
-                if(peerID == myPeerUniqueID){
-                    setUserNames([userName])
-                }
-                else{
-                    // console.log('im calling');
+                
+                if(peerID !== myPeerUniqueID){
                     var call = myPeer.call(peerID, stream);
                     call.on('stream', function(remoteStream) {
-                        // console.log('my current Stream', stream)
-                        // console.log('i receive a stream', remoteStream)
                         if(stream.id !== remoteStream.id){
                             setVideoStreams((streams) => {
                                 const streamsCopy = [...streams];
@@ -75,16 +85,48 @@ const Call:React.FC = () => {
                                 if(!found) streamsCopy.push(remoteStream)
                                 return streamsCopy;
                             })
+
+                            
                             
                         }
                     });
                 }
-                
-                
+                  
 
               }, function(err) {
                 console.log('Failed to get local stream' ,err);
               });
+
+
+              myPeer.on('call', function(call) {
+                getUserMedia({video: true, audio: true}, function(stream) {
+                    setMyStream(stream);
+    
+                    localStorage.setItem('currentStreamId', stream.id);
+                    call.answer(stream);
+                    
+                    call.on('stream', function(remoteStream) {
+                        if(myStream?.id !== remoteStream.id){
+                            
+                            setVideoStreams((streams) => {
+                                const streamsCopy = [...streams];
+                                
+                                const found = streamsCopy.some(el => el.id === remoteStream.id);
+                                if(!found) streamsCopy.push(remoteStream)
+                                return streamsCopy;
+                            })
+                            
+                        }
+                    });
+                }, function(err) {
+                    console.log('Failed to get local stream' ,err);
+                });
+            });
+
+
+
+
+              
             
             
 
@@ -92,38 +134,20 @@ const Call:React.FC = () => {
 
 
         
-        myPeer.on('call', function(call) {
-            getUserMedia({video: true, audio: true}, function(stream) {
-                setMyStream(stream);
-
-                localStorage.setItem('currentStreamId', stream.id);
-                call.answer(stream);
-                call.on('stream', function(remoteStream) {
-                    // console.log('remote stream', remoteStream)
-                    // console.log('my stream', stream)
-                    if(myStream?.id !== remoteStream.id){
-                        console.log(videoStreams);
-                        
-                        // console.log(found);
-                        setVideoStreams((streams) => {
-                            // console.log(streams);
-                            const streamsCopy = [...streams];
-                            
-                            const found = streamsCopy.some(el => el.id === remoteStream.id);
-                            if(!found) streamsCopy.push(remoteStream)
-                            console.log('b', streamsCopy);
-                            return streamsCopy;
-                        })
-                        
-                    }
-                });
-            }, function(err) {
-                console.log('Failed to get local stream' ,err);
-            });
-        });
+       
 
 
-
+        socket.on('newUserName', (userName: string) => {
+            if(userName !== fullName){
+                setUserNames(userNames => {
+                    const userNamesCopy = [...userNames];
+                    const found = userNamesCopy.some(el => el === userName);
+                    if(!found) userNamesCopy.push(userName)
+    
+                    return userNamesCopy;
+               })
+            }
+        })
 
 
         socket.on('new message received', (data: { sender: string, receivedMessage: string; }) => {
@@ -146,19 +170,85 @@ const Call:React.FC = () => {
             })
         });
 
+        socket.on('screen-share-receive', (stream: MediaStream) => {
+            console.log('slam');
+            try {
+                setScreenStream(stream);
+
+            } catch (err) {
+            console.error("Error: " + err);
+            }
+        })
+
 
         window.onbeforeunload = () => {
             const currentStreamID = localStorage.getItem('currentStreamId');
             socket.emit('userExited', currentStreamID, roomId);
         }
 
+        // socket.on('shareScreen', (stream) => {
 
+        // })
+
+       
        
 
     }, [])
 
+    useEffect(() => {
+        if(screenStream){
+            // console.log('we are video', screenVideoRef);
+            if(screenVideoRef?.current){
+                // console.log('im here')
+                screenVideoRef.current.srcObject = screenStream;
+                screenVideoRef.current.onloadedmetadata = function(e) {
+                    if(screenVideoRef?.current){
+                        screenVideoRef.current.play();
+                    }
+                }
+            }
+        }
+    }, [screenVideoRef, screenStream])
 
 
+
+    const shareScreenHandler = async () => {
+
+        if(startSharing && screenStream){
+            const tracks = screenStream.getTracks();
+            for( var i = 0 ; i < tracks.length ; i++ ) tracks[i].stop();
+            
+            setStartSharing(false)
+            setScreenStream(undefined);
+            
+            socket.emit('screen-share-start', roomId, {share:false});
+            return;
+        }
+
+        setStartSharing(true);
+        
+        let captureStream = null;
+      
+        try {
+        // @ts-ignore
+          captureStream = await navigator.mediaDevices.getDisplayMedia({video:true, audio: false});
+          console.log(captureStream)
+          const data = {
+            share:true, stream: captureStream
+          }
+          console.log(data, 'data that im sending')
+          socket.emit('screen-share-start', roomId, data);
+         
+          setScreenStream(captureStream);
+
+          
+          
+        } catch (err) {
+          console.error("Error: " + err);
+        }
+        // connectToNewUser(myUserId, captureStream);
+        // myPeer.call(myUserId, captureStream);
+      };
     
     
 
@@ -166,8 +256,14 @@ const Call:React.FC = () => {
 
     videoStreamsList = (
         <>
-            {myStream && (<Streamer fullName={'ELman'} muted={true} stream={myStream} /> ) }
-            {videoStreams.length > 0 && (videoStreams.map((stream, idx) => <Streamer key={`stream-${idx}`} fullName={userNames[idx]} muted={false} stream={stream} /> ))}
+            {myStream && (<Streamer fullName={fullName ?? 'User 1'} muted={true} stream={myStream} /> ) }
+            {videoStreams.length > 0 && (videoStreams.map((stream, idx) => <Streamer key={`stream-${idx}`} fullName={userNames[idx] ?? `User ${idx + 1}`} muted={false} stream={stream} /> ))}
+            <button onClick={shareScreenHandler}>{startSharing ? 'Stop Share' : 'Start Share'}</button>
+            {startSharing && (
+                <div className="stream-item">
+                    <video ref={screenVideoRef} autoPlay={true} />
+                </div>
+            )}
         </>
     )
 
