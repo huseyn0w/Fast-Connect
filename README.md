@@ -3,6 +3,8 @@ Standalone React WebRTC Application
 
 This application is created for creating fast and standalone video conferences without any registration.
 
+![Live preview Image](https://repository-images.githubusercontent.com/311447745/a180ea00-69a6-11eb-941b-55fb3c915ea1)
+
 **Application features:**
 - Realtime video/audio conference with unlimited number of users divided by room
 - Chat for sending messages
