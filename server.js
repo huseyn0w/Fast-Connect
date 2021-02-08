@@ -44,7 +44,7 @@ io.on('connection', (socket) => {
       socket.to(roomId).emit('screen-share-receive', stream)
     })  
 
-    socket.on('screen-share-top', (roomID, streamID) => {
+    socket.on('screen-share-stop', (roomID, streamID) => {
       socket.to(roomID).emit('screen-share-stop-done', streamID)
     })
 

@@ -162,7 +162,20 @@ video{
   width:100%;
   display: flex;
   justify-content: center;
-  margin-bottom: 15px;
+  margin-bottom:20px;
+}
+
+.screen-sharing-video-cover{
+  width: 100%;
+  padding-right: 30px;
+  display:flex;
+  justify-content:center;
+}
+
+.screen-sharing-video-cover video{
+  width:700px;
+  height: 700px;
+  resize:both;
 }
 
 .streamsCover{
@@ -280,14 +293,13 @@ video{
 }
 
 .screen-share{
-  border: none;
-  outline:none;
-  background-color: blue;
-  color:#fff;
-  display: flex;
+  padding:0;
+  border:0;
+  outline:0;
+  display:flex;
   align-items:center;
+  padding: 5px 15px;
   cursor: pointer;
-  padding: 15px;
 }
 
 .screen-share svg{

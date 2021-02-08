@@ -7,10 +7,11 @@ import VideocamOffRoundedIcon from '@material-ui/icons/VideocamOffRounded';
 interface videoStreamInterface {
     stream: MediaStream,
     fullName: string,
-    muted: boolean
+    muted: boolean,
+    controls: boolean
 }
 
-const Streamer:React.FC<videoStreamInterface> = ({stream, muted, fullName}:videoStreamInterface) => {
+const Streamer:React.FC<videoStreamInterface> = ({stream, muted, fullName, controls=false}:videoStreamInterface) => {
 
     const [videoMuted, setVideoMuted] = useState<Boolean>(false)
     const [audioMuted, setAudioMuted] = useState<Boolean>(false)
@@ -23,12 +24,17 @@ const Streamer:React.FC<videoStreamInterface> = ({stream, muted, fullName}:video
             showAudio = true;
 
         if(video){
-            if(videoMuted) showVideo = false;
-            if(audioMuted) showAudio = false;
+            if(controls){
+                if(videoMuted) showVideo = false;
+                if(audioMuted) showAudio = false;
 
-            stream.getVideoTracks()[0].enabled = showVideo;
-            if(stream.getAudioTracks()[0]?.enabled){
-                stream.getAudioTracks()[0].enabled = showAudio;
+                console.log(showAudio,showVideo)
+
+                stream.getVideoTracks()[0].enabled = showVideo;
+                if(stream.getAudioTracks()[0]){
+                    // console.log('hehey');
+                    stream.getAudioTracks()[0].enabled = showAudio;
+                }
             }
             
 
@@ -40,6 +46,7 @@ const Streamer:React.FC<videoStreamInterface> = ({stream, muted, fullName}:video
                 }
             }
         }
+        
     }, [videoMuted, audioMuted])
 
     const audioHandler = () => {
@@ -67,15 +74,18 @@ const Streamer:React.FC<videoStreamInterface> = ({stream, muted, fullName}:video
     return (
         <div className="stream-item">
             <h2>Im {fullName}</h2>
-            <video ref={videoEl} muted={muteAudio} autoPlay={true} />
-            <div className="stream-buttons">
-                <button type="button" onClick={audioHandler}>
-                    {audioMuted ? <MicOffRoundedIcon /> : <MicRoundedIcon />}
-                </button>
-                <button type="button" onClick={videoHandler}>
-                    {videoMuted ? <VideocamOffRoundedIcon /> : <VideocamRoundedIcon />}
-                </button>
-            </div>
+            <video ref={videoEl} autoPlay={true} />
+            {controls && (
+                <div className="stream-buttons">
+                    <button type="button" onClick={audioHandler}>
+                        {audioMuted ? <MicOffRoundedIcon /> : <MicRoundedIcon />}
+                    </button>
+                    <button type="button" onClick={videoHandler}>
+                        {videoMuted ? <VideocamOffRoundedIcon /> : <VideocamRoundedIcon />}
+                    </button>
+                </div>
+            )}
+            
         </div>
     )
 }
