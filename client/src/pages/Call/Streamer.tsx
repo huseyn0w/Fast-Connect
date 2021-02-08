@@ -74,7 +74,7 @@ const Streamer:React.FC<videoStreamInterface> = ({stream, muted, fullName, contr
     return (
         <div className="stream-item">
             <h2>Im {fullName}</h2>
-            <video ref={videoEl} autoPlay={true} />
+            <video ref={videoEl} muted={audioMuted ? true : false} autoPlay={true} />
             {controls && (
                 <div className="stream-buttons">
                     <button type="button" onClick={audioHandler}>

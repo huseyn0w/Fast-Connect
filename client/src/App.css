@@ -173,7 +173,7 @@ video{
 }
 
 .screen-sharing-video-cover video{
-  width:700px;
+  width: 700px;
   height: 700px;
   resize:both;
 }
