@@ -14,7 +14,7 @@ interface videoStreamInterface {
 const Streamer:React.FC<videoStreamInterface> = ({stream, muted, fullName, controls=false}:videoStreamInterface) => {
 
     const [videoMuted, setVideoMuted] = useState<Boolean>(false)
-    const [audioMuted, setAudioMuted] = useState<Boolean>(false)
+    const [audioMuted, setAudioMuted] = useState<Boolean>(muted)
     const videoEl =  React.createRef<HTMLVideoElement>();
 
 
