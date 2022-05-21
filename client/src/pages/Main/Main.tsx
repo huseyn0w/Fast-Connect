@@ -4,7 +4,6 @@ import Typography from '@material-ui/core/Typography';
 import { makeStyles } from '@material-ui/core/styles';
 import Container from '@material-ui/core/Container';
 import Button from '@material-ui/core/Button';
-import { useHistory } from "react-router-dom";
 import TextField from '@material-ui/core/TextField';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
@@ -46,7 +45,6 @@ const useStyles = makeStyles((theme) => ({
 
 
 const Main:React.FC = () => {
-  let history = useHistory();
   const classes = useStyles();
 
   const [open, setOpen] = useState(false);
@@ -92,7 +90,6 @@ const Main:React.FC = () => {
       localStorage.setItem('roomId', createRoomInput);
       localStorage.setItem('fullName', fullName);
       setRedirect(true);
-      // history.push("/call");
     }
     
   }
@@ -102,15 +99,16 @@ const Main:React.FC = () => {
     if(joinRoomInput && fullName){
       localStorage.setItem('roomId', joinRoomInput);
       localStorage.setItem('fullName', fullName);
-      // console.log('ready to redirect');
       setRedirect(true);
-      // history.push("/call");
     }
   }
 
 
-  return !redirect ? (
+  return (
     <>
+    {redirect && (<Redirect to="/call" />)}
+    {!redirect && (
+      <>
       <div className="page-bg">
         <Container maxWidth="sm" component="main" className={classes.heroContent}> 
         <div id="stars"></div>
@@ -222,7 +220,10 @@ const Main:React.FC = () => {
       </Container>
       </div>
     </>
-  ) : <Redirect to="/call" />;
+    )}
+    </>
+  )
+
 }
 
 export default Main

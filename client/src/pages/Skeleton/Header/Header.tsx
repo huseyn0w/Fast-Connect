@@ -31,7 +31,6 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const Footer:React.FC = () => {
-  const history = useHistory();
   const classes = useStyles();
   return (
     <>

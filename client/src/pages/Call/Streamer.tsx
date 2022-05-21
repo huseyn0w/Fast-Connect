@@ -31,7 +31,6 @@ const Streamer:React.FC<videoStreamInterface> = ({stream, muted, fullName, contr
 
                 stream.getVideoTracks()[0].enabled = showVideo
                 if(stream.getAudioTracks()[0]){
-                    // console.log('hehey');
                     stream.getAudioTracks()[0].enabled = showAudio;
                 }
             }
@@ -46,7 +45,7 @@ const Streamer:React.FC<videoStreamInterface> = ({stream, muted, fullName, contr
             }
         }
         
-    }, [videoMuted, audioMuted])
+    }, [videoMuted, audioMuted, controls, stream, videoEl])
 
     const audioHandler = () => {
         setAudioMuted(!audioMuted);

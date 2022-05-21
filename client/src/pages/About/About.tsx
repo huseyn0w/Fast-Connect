@@ -5,7 +5,7 @@ import Container from '@material-ui/core/Container';
 import Typed from 'react-typed';
 
 
-const story = `<strong>COVID-19 Changed the world...</strong> <br /> Since year 2020 world is different. Majority of people change the way of workflow from Office to Remote mode. <br />
+const story: string = `<strong>COVID-19 Changed the world...</strong> <br /> Since year 2020 world is different. Majority of people change the way of workflow from Office to Remote mode. <br />
 We are required to use different enterprise applications to create a communication between each other. <br />
 Each of them has their own advantages, but in most cases you have to register or download application to use it. <br />
 Besides, you have to pay for <strong>"Premium"</strong> accounts sometimes if you want to have extra options. <br />

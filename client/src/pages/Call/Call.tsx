@@ -1,6 +1,5 @@
-import React, {useState, useEffect, FormEvent} from 'react';
+import React, {useState, useEffect, FormEvent, useMemo} from 'react';
 import ScreenShareIcon from '@material-ui/icons/ScreenShare';
-import StopScreenShareIcon from '@material-ui/icons/StopScreenShare';
 import Peer from 'peerjs';
 import {Redirect} from 'react-router-dom';
 import Streamer from './Streamer';
@@ -8,37 +7,19 @@ import io from "socket.io-client";
 import Message from './Message';
 import { v4 as uuidv4 } from 'uuid';
 
-// @ts-ignore
-const socket = io(process.env.REACT_APP_BACKEND_URL, {'sync disconnect on unload': true });
-
-const peerDetails = {
-    path: '/mypeer',
-    host: '/',
-}
-
-if(process.env.NODE_ENV === 'production'){
-    // @ts-ignore
-    peerDetails.port = process.env.PORT || 5000;
-}
-
 interface ConnectParams {
     audio: boolean;
     video: boolean;
 }
 
-
-const myPeerUniqueID = uuidv4();
-const myPeer = new Peer(myPeerUniqueID)
-
-
 const Call:React.FC = () => {
-    const [streamOptions, _] = useState<ConnectParams>({
+    const socket = useMemo(() => io(process.env.REACT_APP_BACKEND_URL ?? ''), []);
+    const myPeerUniqueID = useMemo(() => uuidv4(), []);
+    const myPeer = useMemo(() => new Peer(myPeerUniqueID), [myPeerUniqueID]); 
+    const [streamOptions] = useState<ConnectParams>({
         audio: true,
         video: true
     })
-
-    
-    
 
     const [videoStreams, setVideoStreams] = useState<MediaStream[]>([])
     const [peersArray, setPeersArray] = useState<string[]>([]);
@@ -50,7 +31,7 @@ const Call:React.FC = () => {
         'Start screen sharing'
     )
     const [fullName, setFullName] = useState(localStorage.getItem('fullName') ?? '');
-    const [roomId, setRoomId] = useState(localStorage.getItem('roomId') ?? false);
+    const [roomId] = useState(localStorage.getItem('roomId') ?? false);
     const screenVideoRef =  React.createRef<HTMLVideoElement>();
     const [startSharing, setStartSharing] = useState<Boolean>(false)
     const [startSharingButtonDisabled, setStartSharingButtonDisabled] = useState<Boolean>(false)
@@ -59,20 +40,13 @@ const Call:React.FC = () => {
 
     
     
-    //@ts-ignore
-    let getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+    const getUserMedia = useMemo(() => {
+        return navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia
+    }, []);
 
     useEffect(() => {
 
-        console.log(myPeerUniqueID)
-
-        
-        
         socket.emit('new-user-arriving-start', myPeerUniqueID, roomId, fullName);
-
-
-        
-
 
         socket.on('new-user-arrived-finish', (peerID:string, roomID:string, userName:string) => {
             
@@ -114,9 +88,6 @@ const Call:React.FC = () => {
                                 if(!found) streamsCopy.push(remoteStream)
                                 return streamsCopy;
                             })
-
-                            
-                            
                         }
                     });
                 }
@@ -152,15 +123,7 @@ const Call:React.FC = () => {
                 });
             });
 
-
-
-
-              
-            
-            
-
         })
-
 
         
         socket.on('receiveMyPeer', (peer: string) => {
@@ -171,7 +134,6 @@ const Call:React.FC = () => {
                 return streamsCopy;
             })
         })
-
 
         socket.on('newUserName', (userName: string) => {
             if(userName !== fullName){
@@ -222,7 +184,7 @@ const Call:React.FC = () => {
         socket.on('userLeft', (streamID: string) => {
             setVideoStreams(currentArray => {
                 let currentStreams =  currentArray.filter(el => {
-                    return el.id != streamID;
+                    return el.id !== streamID;
                 })
                 return [...currentStreams];
             })
@@ -235,13 +197,6 @@ const Call:React.FC = () => {
             const currentStreamID = localStorage.getItem('currentStreamId');
             socket.emit('userExited', currentStreamID, roomId);
         }
-
-        // socket.on('shareScreen', (stream) => {
-
-        // })
-
-       
-       
 
     }, [])
 
@@ -297,8 +252,8 @@ const Call:React.FC = () => {
         
       
         try {
-            // @ts-ignore
-            let captureStream = await navigator.mediaDevices.getDisplayMedia({video:true, audio: false});
+            const mediaDevices = navigator.mediaDevices as any;
+            let captureStream = await mediaDevices.getDisplayMedia({video:true, audio: false});
 
             socket.emit('screen-share-start', roomId, captureStream.id);
 
@@ -317,8 +272,6 @@ const Call:React.FC = () => {
         } catch (err) {
           console.error("Error: " + err);
         }
-        // connectToNewUser(myUserId, captureStream);
-        // myPeer.call(myUserId, captureStream);
       };
     
     const startShare = (
@@ -373,40 +326,45 @@ const Call:React.FC = () => {
     }
 
 
-    return roomId  ? 
-        <div className="AppCover">
-            
-            <div className="video-streams">
-                <div className="streamsCover">
-                    {videoStreamsList}
-                </div>
-            </div>
-            <div className="video-sidebar">
-                <div className="room-headline">
-                    <div>Copy and share the room ID in order to join the conference</div>
-                    <strong>ROOM ID: {roomId}</strong>
-                </div>
-                {peersArray.length > 0 && (
-                    <div className="screenShareCover">
-                        <button type="button" className="screen-share" disabled={startSharingButtonDisabled ? true : false}  onClick={shareScreenHandler}>{startSharing ? stopShare: startShare}</button>
+    return (
+        <>
+        {!roomId && (<Redirect to="/" />)}
+        {roomId && (
+            <div className="AppCover">
+                <div className="video-streams">
+                    <div className="streamsCover">
+                        {videoStreamsList}
                     </div>
-                )}
-                <div className="messages">
-                    {messages.length > 0 ? 
-                        messages.map((el, idx) => {
-                            let data:any = el;
-                            return <Message key={idx} data={data} />
-                        })
-                    : 'Chat is empty'}
                 </div>
-                <div className="input-area">
-                    <form onSubmit={formHandler}>
-                        <input type="text" name="message" value={newMessage} onChange={(e) => setNewMessage(e.target.value)} placeholder="Message" />
-                    </form>
+                <div className="video-sidebar">
+                    <div className="room-headline">
+                        <div>Copy and share the room ID in order to join the conference</div>
+                        <strong>ROOM ID: {roomId}</strong>
+                    </div>
+                    {peersArray.length > 0 && (
+                        <div className="screenShareCover">
+                            <button type="button" className="screen-share" disabled={startSharingButtonDisabled ? true : false}  onClick={shareScreenHandler}>{startSharing ? stopShare: startShare}</button>
+                        </div>
+                    )}
+                    <div className="messages">
+                        {messages.length > 0 ? 
+                            messages.map((el, idx) => {
+                                let data:any = el;
+                                return <Message key={idx} data={data} />
+                            })
+                        : 'Chat is empty'}
+                    </div>
+                    <div className="input-area">
+                        <form onSubmit={formHandler}>
+                            <input type="text" name="message" value={newMessage} onChange={(e) => setNewMessage(e.target.value)} placeholder="Message" />
+                        </form>
+                    </div>
                 </div>
             </div>
-        </div>
-        : <Redirect to="/" />;
+        )}
+        </>
+
+    )
 }
 
 export default Call
