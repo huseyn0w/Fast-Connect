@@ -50,7 +50,6 @@ const Call:React.FC = () => {
 
         socket.on('new-user-arrived-finish', (peerID:string, roomID:string, userName:string) => {
             
-
             setPeersArray((peers) => {
                 const streamsCopy = [...peers];
                 const found = streamsCopy.some(el => el === peerID);
@@ -58,7 +57,6 @@ const Call:React.FC = () => {
 
                 return streamsCopy;
             })
-        
         
         
             if(!fullName){
@@ -100,7 +98,6 @@ const Call:React.FC = () => {
 
               myPeer.on('call', function(call) {
                   getUserMedia({video: true, audio: true}, function(stream) {
-                    setMyStream(stream);
     
                     localStorage.setItem('currentStreamId', stream.id);
                     call.answer(stream);
@@ -198,7 +195,7 @@ const Call:React.FC = () => {
             socket.emit('userExited', currentStreamID, roomId);
         }
 
-    }, [])
+    }, [fullName, myPeer, roomId, streamOptions, myPeerUniqueID, socket, getUserMedia])
 
     useEffect(() => {
         if(screenStream){
