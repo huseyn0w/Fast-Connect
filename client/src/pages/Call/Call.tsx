@@ -37,8 +37,6 @@ const Call:React.FC = () => {
     const [startSharingButtonDisabled, setStartSharingButtonDisabled] = useState<Boolean>(false)
     const [screenStreamID, setScreenStreamID] =  useState<string>();
     const [screenStream, setScreenStream] =  useState<MediaStream>();
-
-    
     
     const getUserMedia = useMemo(() => {
         return navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia
@@ -85,6 +83,7 @@ const Call:React.FC = () => {
               call.answer(stream);
               
               call.on('stream', function(remoteStream) {
+                  console.log(remoteStream)
                   if(myStream?.id !== remoteStream.id){
                       
                       setVideoStreams((streams) => {
@@ -249,8 +248,6 @@ const Call:React.FC = () => {
             const mediaDevices = navigator.mediaDevices as any;
             let captureStream = await mediaDevices.getDisplayMedia({video:true, audio: false});
 
-            socket.emit('screen-share-start', roomId, captureStream.id);
-
             setStartSharing(true);
             
             setScreenStream(captureStream);
@@ -266,7 +263,7 @@ const Call:React.FC = () => {
         } catch (err) {
           console.error("Error: " + err);
         }
-    }, [myPeer, peersArray, socket, roomId])
+    }, [myPeer, peersArray])
 
 
 

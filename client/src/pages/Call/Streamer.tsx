@@ -60,7 +60,7 @@ const Streamer:React.FC<videoStreamInterface> = ({stream, muted, fullName, contr
 
     return (
         <div className="stream-item">
-            <h2>Im {fullName}</h2>
+            <h2>{fullName}</h2>
             <video ref={videoEl} muted={muted} autoPlay={true} />
             {controls && (
                 <div className="stream-buttons">
