@@ -18,13 +18,9 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 io.on("connection", (socket) => {
-  socket.on("new-user-arriving-start", (peerID, roomID, userName) => {
+  socket.on("i-am-arrived", (peerID, roomID, userName) => {
     socket.join(roomID);
-    io.to(roomID).emit("new-user-arrived-finish", peerID, roomID, userName);
-  });
-
-  socket.on("newUserName", (roomID, userName) => {
-    io.to(roomID).emit("newUserName", userName);
+    socket.to(roomID).emit("new-user-arrived", peerID, roomID, userName);
   });
 
   socket.on("userExited", (peerID, roomID) => {
@@ -35,18 +31,6 @@ io.on("connection", (socket) => {
   socket.on("new message", (data, roomID) => {
     socket.emit("new message received", data);
     socket.to(roomID).emit("new message received", data);
-  });
-
-  socket.on("screen-share-start", (roomId, stream) => {
-    socket.to(roomId).emit("screen-share-receive", stream);
-  });
-
-  socket.on("screen-share-stop", (roomID, streamID) => {
-    socket.to(roomID).emit("screen-share-stop-done", streamID);
-  });
-
-  socket.on("sendMyPeer", (roomID, peerID) => {
-    socket.to(roomID).emit("receiveMyPeer", peerID);
   });
 
   socket.on("disconnect", () => {});
