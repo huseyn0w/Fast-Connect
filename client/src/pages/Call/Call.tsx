@@ -1,4 +1,4 @@
-import React, {useState, useEffect, FormEvent, useMemo} from 'react';
+import React, {useState, useEffect, FormEvent, useMemo, useCallback} from 'react';
 import ScreenShareIcon from '@material-ui/icons/ScreenShare';
 import Peer from 'peerjs';
 import {Redirect} from 'react-router-dom';
@@ -43,6 +43,81 @@ const Call:React.FC = () => {
     const getUserMedia = useMemo(() => {
         return navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia
     }, []);
+
+    useEffect(() => {
+        socket.on('screen-share-receive', (streamID:string) => {
+
+            setScreenStreamID(streamID);
+            setShareScreenButtonText('Start screen sharing')
+            setStartSharingButtonDisabled(true)
+
+        })
+
+        socket.on('screen-share-stop-done', (streamID: string) => {
+            setStartSharingButtonDisabled(false);
+            setVideoStreams(streams => {
+                const streamsCopy = streams.filter(el => {
+                    return el.id !== streamID
+                }) 
+                return streamsCopy;
+            })
+        })
+    }, [socket])
+
+    useEffect(() => {
+        socket.on('new message received', (data: { sender: string, receivedMessage: string; }) => {
+            let currentSender = data.sender;
+            setMessages(currentArray => {
+                return [...currentArray, {
+                    sender:currentSender,
+                    receivedMessage: data.receivedMessage
+                }]
+            })
+            setNewMessage('');
+        })
+    }, [socket])
+
+    useEffect(() => {
+        myPeer.on('call', function(call) {
+            getUserMedia({video: true, audio: true}, function(stream) {
+
+              localStorage.setItem('currentStreamId', stream.id);
+              call.answer(stream);
+              
+              call.on('stream', function(remoteStream) {
+                  if(myStream?.id !== remoteStream.id){
+                      
+                      setVideoStreams((streams) => {
+                          const streamsCopy = [...streams];
+                          
+                          const found = streamsCopy.some(el => el.id === remoteStream.id);
+                          if(!found) streamsCopy.push(remoteStream)
+                          return streamsCopy;
+                      })
+                      
+                  }
+              });
+          }, function(err) {
+              console.log('Failed to get local stream' ,err);
+          });
+      });
+    }, [getUserMedia, myPeer, myStream?.id])
+
+    useEffect(() => {
+        socket.on('userLeft', (streamID: string) => {
+            setVideoStreams(currentArray => {
+                let currentStreams =  currentArray.filter(el => {
+                    return el.id !== streamID;
+                })
+                return [...currentStreams];
+            })
+        });
+
+        window.onbeforeunload = () => {
+            const currentStreamID = localStorage.getItem('currentStreamId');
+            socket.emit('userExited', currentStreamID, roomId);
+        }
+    }, [roomId, socket])
 
     useEffect(() => {
 
@@ -95,31 +170,6 @@ const Call:React.FC = () => {
                 console.log('Failed to get local stream' ,err);
               });
 
-
-              myPeer.on('call', function(call) {
-                  getUserMedia({video: true, audio: true}, function(stream) {
-    
-                    localStorage.setItem('currentStreamId', stream.id);
-                    call.answer(stream);
-                    
-                    call.on('stream', function(remoteStream) {
-                        if(myStream?.id !== remoteStream.id){
-                            
-                            setVideoStreams((streams) => {
-                                const streamsCopy = [...streams];
-                                
-                                const found = streamsCopy.some(el => el.id === remoteStream.id);
-                                if(!found) streamsCopy.push(remoteStream)
-                                return streamsCopy;
-                            })
-                            
-                        }
-                    });
-                }, function(err) {
-                    console.log('Failed to get local stream' ,err);
-                });
-            });
-
         })
 
         
@@ -144,56 +194,6 @@ const Call:React.FC = () => {
             }
         })
 
-
-        socket.on('new message received', (data: { sender: string, receivedMessage: string; }) => {
-            let currentSender = data.sender;
-            setMessages(currentArray => {
-                return [...currentArray, {
-                    sender:currentSender,
-                    receivedMessage: data.receivedMessage
-                }]
-            })
-            setNewMessage('');
-        })
-
-        socket.on('screen-share-receive', (streamID:string) => {
-
-            setScreenStreamID(streamID);
-            setShareScreenButtonText('Start screen sharing')
-            setStartSharingButtonDisabled(true)
-
-        })
-
-
-
-        socket.on('screen-share-stop-done', (streamID: string) => {
-            setStartSharingButtonDisabled(false);
-            setVideoStreams(streams => {
-                const streamsCopy = streams.filter(el => {
-                    return el.id !== streamID
-                }) 
-                return streamsCopy;
-            })
-        })
-
-        
-
-        socket.on('userLeft', (streamID: string) => {
-            setVideoStreams(currentArray => {
-                let currentStreams =  currentArray.filter(el => {
-                    return el.id !== streamID;
-                })
-                return [...currentStreams];
-            })
-        });
-
-        
-
-
-        window.onbeforeunload = () => {
-            const currentStreamID = localStorage.getItem('currentStreamId');
-            socket.emit('userExited', currentStreamID, roomId);
-        }
 
     }, [fullName, myPeer, roomId, streamOptions, myPeerUniqueID, socket, getUserMedia])
 
@@ -228,26 +228,23 @@ const Call:React.FC = () => {
     }, [screenStreamID, videoStreams])
 
 
-
-    const shareScreenHandler = async () => {
-
-        if(startSharing && screenStream){
-            socket.emit('screen-share-stop', roomId, screenStream.id);
-            const tracks = screenStream.getTracks();
+    const stopScreenShare = useCallback(() => {
+        socket.emit('screen-share-stop', roomId, screenStream?.id);
+        const tracks = screenStream?.getTracks();
+        if(tracks){
             for( var i = 0 ; i < tracks.length ; i++ ) tracks[i].stop();
-            
             setStartSharing(false)
             setScreenStream(undefined);
             setShareScreenButtonText('Start screen Sharing')
-            
-            
             return;
         }
+        
+        
+        return;
+    }, [screenStream, roomId, socket])
 
-       
-        
-        
-      
+
+    const startScreenShare = useCallback(async () => {
         try {
             const mediaDevices = navigator.mediaDevices as any;
             let captureStream = await mediaDevices.getDisplayMedia({video:true, audio: false});
@@ -269,45 +266,51 @@ const Call:React.FC = () => {
         } catch (err) {
           console.error("Error: " + err);
         }
-      };
+    }, [myPeer, peersArray, socket, roomId])
+
+
+
+    const shareScreenHandler = useCallback(async () => {
+
+        if(startSharing && screenStream){
+            return stopScreenShare();
+        }
+
+        return await startScreenShare();
+      
+        
+      }, [startScreenShare, stopScreenShare, startSharing, screenStream])
+
     
-    const startShare = (
-        <>
-            {shareScreenButtonText}
-            <ScreenShareIcon />
-        </>
-    )
 
-    const stopShare = (
-       <>
-            {shareScreenButtonText}
-            <ScreenShareIcon />
-       </>
-    )
+    const videoStreamsList =  useMemo(() => {
+        return (
+            <>
+                {myStream && (<Streamer controls={true} fullName={fullName ?? 'User 1'} muted={true} stream={myStream} /> ) }
+                {videoStreams.length > 0 && (
+                    videoStreams.map((stream, idx) => {
     
+                        return (
+                            <Streamer key={`stream-${idx}`} controls={false} fullName={userNames[idx] ?? `User ${idx + 1}`} muted={false} stream={stream} /> 
+                        )
+                    }
+                ))}
+                
+            </>
+        )
+    }, [myStream, videoStreams, fullName, userNames])
 
-    let videoStreamsList;
-
-
-    videoStreamsList = (
-        <>
-            {myStream && (<Streamer controls={true} fullName={fullName ?? 'User 1'} muted={true} stream={myStream} /> ) }
-            {videoStreams.length > 0 && (
-                videoStreams.map((stream, idx) => {
-
-                    return (
-                        <Streamer key={`stream-${idx}`} controls={false} fullName={userNames[idx] ?? `User ${idx + 1}`} muted={false} stream={stream} /> 
-                    )
-                }
-            ))}
-            {screenStream && screenVideoRef && (
-                <div className="screen-sharing-video-cover">
-                    <video ref={screenVideoRef} muted={false} autoPlay={true} />
-                </div>
-            )}
-            
-        </>
-    )
+    const videoSharingBlock = useMemo(() => {
+        return (
+            <>
+                {screenStream && screenVideoRef && (
+                    <div className="screen-sharing-video-cover">
+                        <video ref={screenVideoRef} muted={false} autoPlay={true} />
+                    </div>
+                )}
+            </>
+        )
+    }, [screenStream, screenVideoRef])
 
     const formHandler = (e:FormEvent) => {
         e.preventDefault();
@@ -317,9 +320,6 @@ const Call:React.FC = () => {
                 receivedMessage: newMessage
             }, roomId)
         }
-        
-
-        
     }
 
 
@@ -332,6 +332,7 @@ const Call:React.FC = () => {
                     <div className="streamsCover">
                         {videoStreamsList}
                     </div>
+                    {videoSharingBlock}
                 </div>
                 <div className="video-sidebar">
                     <div className="room-headline">
@@ -340,7 +341,10 @@ const Call:React.FC = () => {
                     </div>
                     {peersArray.length > 0 && (
                         <div className="screenShareCover">
-                            <button type="button" className="screen-share" disabled={startSharingButtonDisabled ? true : false}  onClick={shareScreenHandler}>{startSharing ? stopShare: startShare}</button>
+                            <button type="button" className="screen-share" disabled={startSharingButtonDisabled ? true : false}  onClick={shareScreenHandler}>
+                                {shareScreenButtonText}
+                                <ScreenShareIcon />
+                            </button>
                         </div>
                     )}
                     <div className="messages">

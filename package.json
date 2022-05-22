@@ -34,7 +34,7 @@
     "express": "^4.17.1",
     "nodemon": "^2.0.6",
     "peer": "^0.5.3",
-    "socket.io": "^2.3.0"
+    "socket.io": "^2.4.1"
   },
   "engines": {
     "node": "14.x"

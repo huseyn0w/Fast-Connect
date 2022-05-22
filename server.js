@@ -1,76 +1,68 @@
-const express = require('express');
+const express = require("express");
 const app = express();
-const server = require('http').createServer(app);
-const cors = require('cors');
-const io = require('socket.io')(server);
-const path = require('path');
-const bodyParser = require('body-parser');
+const server = require("http").createServer(app);
+const cors = require("cors");
+const io = require("socket.io")(server);
+const path = require("path");
+const bodyParser = require("body-parser");
 const port = process.env.PORT || 5000;
-const ExpressPeerServer = require('peer').ExpressPeerServer;
+const ExpressPeerServer = require("peer").ExpressPeerServer;
 
 const options = {
   debug: true,
-}
+};
 
 app.use(cors());
 
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }))
+app.use(bodyParser.urlencoded({ extended: true }));
 
+io.on("connection", (socket) => {
+  socket.on("new-user-arriving-start", (peerID, roomID, userName) => {
+    socket.join(roomID);
+    io.to(roomID).emit("new-user-arrived-finish", peerID, roomID, userName);
+  });
 
-io.on('connection', (socket) => {
+  socket.on("newUserName", (roomID, userName) => {
+    io.to(roomID).emit("newUserName", userName);
+  });
 
-    socket.on('new-user-arriving-start', (peerID, roomID, userName) => {
-      socket.join(roomID);
-      io.to(roomID).emit('new-user-arrived-finish', peerID, roomID, userName);
-    })
+  socket.on("userExited", (peerID, roomID) => {
+    socket.leave(roomID);
+    io.to(roomID).emit("userLeft", peerID);
+  });
 
-    socket.on('newUserName', (roomID, userName) => {
-      io.to(roomID).emit('newUserName', userName);
-    })
+  socket.on("new message", (data, roomID) => {
+    socket.emit("new message received", data);
+    socket.to(roomID).emit("new message received", data);
+  });
 
-    socket.on('userExited', (peerID, roomID) => {
-      socket.leave(roomID,);
-      io.to(roomID).emit('userLeft', peerID);
-    })
+  socket.on("screen-share-start", (roomId, stream) => {
+    socket.to(roomId).emit("screen-share-receive", stream);
+  });
 
-    socket.on('new message', (data, roomID) => {
-      socket.emit('new message received', data);
-      socket.to(roomID).emit('new message received', data);
-    })
+  socket.on("screen-share-stop", (roomID, streamID) => {
+    socket.to(roomID).emit("screen-share-stop-done", streamID);
+  });
 
+  socket.on("sendMyPeer", (roomID, peerID) => {
+    socket.to(roomID).emit("receiveMyPeer", peerID);
+  });
 
-    socket.on('screen-share-start', (roomId, stream) => {
-      socket.to(roomId).emit('screen-share-receive', stream)
-    })  
-
-    socket.on('screen-share-stop', (roomID, streamID) => {
-      socket.to(roomID).emit('screen-share-stop-done', streamID)
-    })
-
-    socket.on('sendMyPeer', (roomID, peerID) => {
-      socket.to(roomID).emit('receiveMyPeer', peerID)
-    })
-
-    socket.on("disconnect", () => {
-
-    });
-
+  socket.on("disconnect", () => {});
 });
 
-// app.get('/', (req, res) => {
-//   res.send('Welcome to the Fast Connect Backend ;)');
-// })
+app.get("/", (req, res) => {
+  res.send("Welcome to the Fast Connect Backend ;)");
+});
 
-app.use('/mypeer', ExpressPeerServer(server, options));
+app.use("/mypeer", ExpressPeerServer(server, options));
 
-if(process.env.NODE_ENV === 'production'){
-   app.use(express.static('client/build'));
-   app.get('*', (req, res) => {
-     res.sendFile(path.resolve(__dirname, 'client', 'build', 'index.html'));
-   })
+if (process.env.NODE_ENV === "production") {
+  app.use(express.static("client/build"));
+  app.get("*", (req, res) => {
+    res.sendFile(path.resolve(__dirname, "client", "build", "index.html"));
+  });
 }
-
-
 
 server.listen(port);
