@@ -1,0 +1,33 @@
+# Edge reverse proxy for Fast Connect.
+#
+# {$DOMAIN} and {$ACME_EMAIL} come from the environment (see .env.production).
+# Caddy automatically obtains and renews TLS certificates from Let's Encrypt for
+# {$DOMAIN}, and transparently proxies WebSocket upgrades — no extra config needed.
+
+{
+	email {$ACME_EMAIL}
+}
+
+{$DOMAIN} {
+	encode gzip zstd
+
+	# Real-time signaling (Socket.IO) — long-lived WebSocket connections.
+	handle /socket.io/* {
+		reverse_proxy server:5000
+	}
+
+	# Self-hosted PeerJS broker — also WebSocket.
+	handle /peerjs/* {
+		reverse_proxy server:5000
+	}
+
+	# Health probe.
+	handle /health {
+		reverse_proxy server:5000
+	}
+
+	# Everything else: the static SPA.
+	handle {
+		reverse_proxy client:80
+	}
+}

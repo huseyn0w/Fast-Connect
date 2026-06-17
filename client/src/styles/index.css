@@ -1,0 +1,53 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    @apply bg-ink text-slate-200 antialiased;
+    font-feature-settings: "cv11", "ss01";
+  }
+
+  ::selection {
+    @apply bg-aurora/30 text-white;
+  }
+}
+
+@layer components {
+  /* Frosted panel used for cards, modals and the call sidebar. */
+  .glass {
+    @apply rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-xl;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.06),
+      0 30px 80px -40px rgba(0, 0, 0, 0.8);
+  }
+
+  .focus-ring {
+    @apply outline-none ring-aurora/60 focus-visible:ring-2;
+  }
+}
+
+/* Drifting starfield layer — a tiled dot pattern, far cheaper than 1000 box-shadows. */
+.stars {
+  background-image: radial-gradient(1px 1px at var(--x, 20px) var(--y, 30px), rgba(255, 255, 255, 0.7), transparent);
+  background-repeat: repeat;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-drift-slow,
+  .animate-drift-med,
+  .animate-drift-fast,
+  .animate-shimmer {
+    animation: none !important;
+  }
+}

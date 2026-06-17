@@ -1,0 +1,41 @@
+# Local development with production-style containers.
+#
+# This validates the Docker images end-to-end on your machine. For day-to-day
+# work with hot-reload, prefer running natively:  npm run dev:server / dev:client
+#
+#   docker compose up --build
+#   open http://localhost:8080
+#
+# localhost is a secure context, so getUserMedia (camera/mic) works over plain HTTP here.
+
+services:
+  server:
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+    ports:
+      - "5000:5000"
+    environment:
+      NODE_ENV: development
+      PORT: "5000"
+      # Allow the client origin below to call the API / open sockets.
+      CORS_ORIGINS: http://localhost:8080
+      PEER_PATH: /peerjs
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:5000/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  client:
+    build:
+      context: .
+      dockerfile: client/Dockerfile
+      args:
+        # Vite inlines these at build time.
+        VITE_SERVER_URL: http://localhost:5000
+        VITE_PEER_PATH: /peerjs
+    ports:
+      - "8080:80"
+    depends_on:
+      - server
