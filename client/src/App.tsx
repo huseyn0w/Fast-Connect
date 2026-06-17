@@ -1,35 +1,18 @@
-import React from 'react';
-import {
-  Switch,
-  Route,
-} from "react-router-dom";
-import './App.css';
-import About from './pages/About/About';
-import Call from './pages/Call/Call';
-import Main from './pages/Main/Main';
-import NotFound from './pages/404/404';
-import Header from './pages/Skeleton/Header/Header';
+import { Route, Routes } from "react-router-dom";
+import { Backdrop } from "./components/Backdrop";
+import { Landing } from "./pages/Landing";
+import { Room } from "./pages/Room";
+import { NotFound } from "./pages/NotFound";
 
-
-function App() {
-
+export function App() {
   return (
-    <Switch>
-      <Route path="/call" exact>
-        <Call />
-      </Route>
-      <Route path="/about" exact>
-        <Header />
-          <About />
-      </Route>
-      <Route path="/" exact>
-        <Header />
-        <Main />
-      </Route>
-      <Route component={NotFound} exact />
-    </Switch>
-  )
-
+    <>
+      <Backdrop />
+      <Routes>
+        <Route path="/" element={<Landing />} />
+        <Route path="/room/:roomId" element={<Room />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </>
+  );
 }
-
-export default App;
