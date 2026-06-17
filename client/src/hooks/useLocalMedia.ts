@@ -16,7 +16,8 @@ export interface LocalMedia {
 export function useLocalMedia(constraints: MediaStreamConstraints = { audio: true, video: true }): LocalMedia {
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [audioEnabled, setAudioEnabled] = useState(true);
+  // Join muted by default; the user opts into being heard.
+  const [audioEnabled, setAudioEnabled] = useState(false);
   const [videoEnabled, setVideoEnabled] = useState(true);
   const streamRef = useRef<MediaStream | null>(null);
 
@@ -32,6 +33,9 @@ export function useLocalMedia(constraints: MediaStreamConstraints = { audio: tru
           mediaStream.getTracks().forEach((track) => track.stop());
           return;
         }
+        // Start muted: silence the mic track but keep it in the stream so
+        // unmuting later (and WebRTC negotiation) needs no renegotiation.
+        mediaStream.getAudioTracks().forEach((track) => (track.enabled = false));
         streamRef.current = mediaStream;
         setStream(mediaStream);
       })

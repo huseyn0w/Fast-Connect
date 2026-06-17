@@ -40,6 +40,17 @@ describe("useLocalMedia", () => {
     expect(result.current.error).toBeNull();
   });
 
+  it("starts with the microphone muted", async () => {
+    const { stream, audio } = fakeStream();
+    getUserMedia.mockResolvedValue(stream);
+
+    const { result } = renderHook(() => useLocalMedia());
+    await waitFor(() => expect(result.current.stream).toBe(stream));
+
+    expect(result.current.audioEnabled).toBe(false);
+    expect(audio.enabled).toBe(false);
+  });
+
   it("toggles audio by flipping the track enabled flag", async () => {
     const { stream, audio } = fakeStream();
     getUserMedia.mockResolvedValue(stream);
@@ -47,13 +58,14 @@ describe("useLocalMedia", () => {
     const { result } = renderHook(() => useLocalMedia());
     await waitFor(() => expect(result.current.stream).toBe(stream));
 
-    act(() => result.current.toggleAudio());
-    expect(result.current.audioEnabled).toBe(false);
-    expect(audio.enabled).toBe(false);
-
+    // Joins muted, so the first toggle unmutes.
     act(() => result.current.toggleAudio());
     expect(result.current.audioEnabled).toBe(true);
     expect(audio.enabled).toBe(true);
+
+    act(() => result.current.toggleAudio());
+    expect(result.current.audioEnabled).toBe(false);
+    expect(audio.enabled).toBe(false);
   });
 
   it("stops all tracks on unmount", async () => {
