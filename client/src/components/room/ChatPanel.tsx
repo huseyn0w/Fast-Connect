@@ -77,7 +77,7 @@ export function ChatPanel({ messages, selfName, onSend, onClose }: ChatPanelProp
           placeholder="Message the room"
           aria-label="Message"
           maxLength={2000}
-          className="h-10 flex-1 rounded-xl border border-white/10 bg-white/[0.03] px-3 text-sm text-white placeholder:text-slate-500 focus-ring focus-visible:border-aurora/50"
+          className="h-10 flex-1 rounded-xl border border-white/10 bg-white/[0.03] px-3 text-base text-white placeholder:text-slate-500 focus-ring focus-visible:border-aurora/50 sm:text-sm"
         />
         <Button type="submit" size="sm" aria-label="Send message" disabled={!draft.trim()} className="h-10 w-10 px-0">
           <PaperPlaneRight size={18} weight="fill" />

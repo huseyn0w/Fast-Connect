@@ -24,7 +24,7 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(function T
           ref={ref}
           id={inputId}
           aria-invalid={Boolean(error)}
-          className={`h-11 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 text-[15px] text-white placeholder:text-slate-500 transition-colors focus-ring focus-visible:border-aurora/50 ${
+          className={`h-11 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 text-base text-white placeholder:text-slate-500 transition-colors focus-ring focus-visible:border-aurora/50 sm:text-[15px] ${
             trailing ? "pr-12" : ""
           } ${error ? "border-rose-500/60" : ""} ${className}`}
           {...props}

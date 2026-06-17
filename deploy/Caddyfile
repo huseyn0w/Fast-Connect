@@ -11,6 +11,13 @@
 {$DOMAIN} {
 	encode gzip zstd
 
+	# HSTS belongs at the TLS edge (Caddy terminates TLS). The SPA's CSP and other
+	# page security headers come from the upstream client/nginx and pass through.
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		-Server
+	}
+
 	# Real-time signaling (Socket.IO) — long-lived WebSocket connections.
 	handle /socket.io/* {
 		reverse_proxy server:5000
