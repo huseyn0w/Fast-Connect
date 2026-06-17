@@ -12,27 +12,35 @@
 # =============================================================================
 
 # -----------------------------------------------------------------------------
-# Stage 1 — build the static SPA bundle
+# Stage 1 — deps: install client workspace deps (incl. dev). Shared by dev+build.
 # -----------------------------------------------------------------------------
-FROM node:22-alpine AS build
+FROM node:22-alpine AS deps
 WORKDIR /app
-
-# Build-time configuration (inlined into the JS bundle by Vite).
-#   VITE_SERVER_URL: base URL of the signaling server.
-#     Local compose -> http://localhost:5000
-#     Production (same-origin behind the edge proxy) -> leave EMPTY ""
-#   VITE_PEER_PATH:  must match the server's PEER_PATH (default /peerjs).
-ARG VITE_SERVER_URL=""
-ARG VITE_PEER_PATH="/peerjs"
-ENV VITE_SERVER_URL=$VITE_SERVER_URL
-ENV VITE_PEER_PATH=$VITE_PEER_PATH
-
-# Install client workspace deps (incl. dev — needed to build) via root lockfile.
 COPY package.json package-lock.json ./
 COPY client/package.json ./client/package.json
 RUN npm ci --workspace @fast-connect/client --include-workspace-root=false
 
-# Copy the client source and build.
+# -----------------------------------------------------------------------------
+# Stage 1b — dev: Vite dev server with HMR. Source is bind-mounted by
+# docker-compose.dev.yml, so nothing is copied in here.
+# -----------------------------------------------------------------------------
+FROM deps AS dev
+ENV NODE_ENV=development
+WORKDIR /app
+EXPOSE 5173
+CMD ["npm", "run", "dev", "--workspace", "@fast-connect/client", "--", "--host"]
+
+# -----------------------------------------------------------------------------
+# Stage 1c — build the static SPA bundle.
+#   VITE_SERVER_URL: base URL of the signaling server (Vite inlines it).
+#     Local compose -> http://localhost:5000 ; production same-origin -> "".
+#   VITE_PEER_PATH:  must match the server's PEER_PATH (default /peerjs).
+# -----------------------------------------------------------------------------
+FROM deps AS build
+ARG VITE_SERVER_URL=""
+ARG VITE_PEER_PATH="/peerjs"
+ENV VITE_SERVER_URL=$VITE_SERVER_URL
+ENV VITE_PEER_PATH=$VITE_PEER_PATH
 COPY client/ ./client/
 RUN npm run build --workspace @fast-connect/client
 

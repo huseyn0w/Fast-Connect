@@ -22,7 +22,7 @@ export function VideoTile({ stream, name, muted = false, isLocal = false, audioO
   }, [stream]);
 
   return (
-    <div className="group relative aspect-video overflow-hidden rounded-2xl border border-white/10 bg-ink-card shadow-card">
+    <div className="group relative aspect-video overflow-hidden rounded-2xl border border-white/10 bg-ink-card shadow-card transition-colors duration-200 ease-out-quint hover:border-white/20">
       <video
         ref={videoRef}
         autoPlay
@@ -30,6 +30,8 @@ export function VideoTile({ stream, name, muted = false, isLocal = false, audioO
         muted={muted}
         className={`h-full w-full object-cover ${isLocal ? "[transform:rotateY(180deg)]" : ""}`}
       />
+      {/* inner edge highlight for depth */}
+      <span className="pointer-events-none absolute inset-0 rounded-2xl ring-1 ring-inset ring-white/5" />
       <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-center justify-between gap-2 bg-gradient-to-t from-ink/80 to-transparent p-3">
         <span className="rounded-lg bg-ink/60 px-2 py-1 text-xs font-medium text-white backdrop-blur-sm">
           {name}

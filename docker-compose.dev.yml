@@ -1,0 +1,56 @@
+# Containerized development with live code sync (HMR).
+#
+#   docker compose -f docker-compose.dev.yml up --build
+#   open http://localhost:5173
+#
+# Source folders are bind-mounted, so edits on the host are picked up instantly:
+#   - client: Vite HMR refreshes the browser
+#   - server: tsx restarts the process on change
+#
+# Anonymous volumes (e.g. /app/node_modules) shadow the host's folders so the
+# container keeps its own Linux-native dependencies — your macOS node_modules
+# (esbuild/rollup binaries) must NOT leak into the Linux container.
+# File-watching uses polling so changes are detected reliably across the mount.
+
+services:
+  server:
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+      target: dev
+    # Host port is configurable: on macOS, AirPlay Receiver holds 5000.
+    #   SERVER_PORT=5055 docker compose -f docker-compose.dev.yml up
+    ports:
+      - "${SERVER_PORT:-5000}:5000"
+    environment:
+      NODE_ENV: development
+      PORT: "5000"
+      CORS_ORIGINS: http://localhost:5173
+      PEER_PATH: /peerjs
+      CHOKIDAR_USEPOLLING: "true"
+    volumes:
+      - ./server/src:/app/server/src
+      - ./server/package.json:/app/server/package.json
+      - ./server/tsconfig.json:/app/server/tsconfig.json
+      # Keep the container's installed deps (don't let the host shadow them).
+      - /app/node_modules
+      - /app/server/node_modules
+
+  client:
+    build:
+      context: .
+      dockerfile: client/Dockerfile
+      target: dev
+    ports:
+      - "5173:5173"
+    environment:
+      NODE_ENV: development
+      VITE_SERVER_URL: http://localhost:${SERVER_PORT:-5000}
+      VITE_PEER_PATH: /peerjs
+      VITE_USE_POLLING: "true"
+    volumes:
+      - ./client:/app/client
+      - /app/node_modules
+      - /app/client/node_modules
+    depends_on:
+      - server

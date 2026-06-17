@@ -51,21 +51,20 @@ export function Landing() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
         >
-          <p className="text-sm font-medium uppercase tracking-[0.2em] text-aurora-soft">
+          <p className="inline-flex items-center gap-2 text-[13px] font-medium uppercase tracking-[0.22em] text-aurora-soft/90">
+            <span className="h-1.5 w-1.5 rounded-full bg-aurora-soft shadow-[0_0_10px] shadow-aurora-soft" />
             No app. No sign-up.
           </p>
-          <h1 className="mt-4 text-4xl font-semibold leading-[1.05] tracking-tight text-white md:text-6xl">
+          <h1 className="mt-5 text-[2.75rem] font-semibold leading-[0.98] tracking-[-0.03em] text-white sm:text-6xl md:text-[4.5rem]">
             Video rooms that
-            <span className="bg-gradient-to-r from-aurora-soft to-aurora-glow bg-clip-text text-transparent">
-              {" "}
-              start instantly
-            </span>
+            <br />
+            <span className="text-aurora-soft">start instantly.</span>
           </h1>
-          <p className="mt-5 max-w-md text-lg leading-relaxed text-slate-400">
+          <p className="mt-6 max-w-md text-lg leading-relaxed text-slate-400 [text-wrap:pretty]">
             Create a private room, share the link, and talk face to face in seconds. Screen sharing
             and chat included.
           </p>
-          <div className="mt-8 flex flex-wrap items-center gap-3">
+          <div className="mt-9 flex flex-wrap items-center gap-3">
             <Button size="lg" onClick={openCreate}>
               Create a room
               <ArrowRight size={18} weight="bold" />
@@ -87,40 +86,48 @@ export function Landing() {
         </motion.div>
       </main>
 
-      {/* How it works — typographic columns, not cards */}
-      <section id="how-it-works" className="mx-auto w-full max-w-6xl px-5 py-16">
-        <h2 className="text-2xl font-semibold tracking-tight text-white">Everything you need, nothing you don't</h2>
-        <div className="mt-8 grid grid-cols-1 gap-px overflow-hidden rounded-2xl border border-white/10 bg-white/5 sm:grid-cols-3">
+      {/* How it works — editorial columns split by faded hairlines, not cards */}
+      <section id="how-it-works" className="mx-auto w-full max-w-6xl px-5 py-20 md:py-28">
+        <div className="rule mb-14" />
+        <h2 className="max-w-2xl text-3xl font-semibold leading-tight tracking-[-0.02em] text-white md:text-[2.5rem]">
+          Everything you need,
+          <br className="hidden sm:block" /> nothing you don't.
+        </h2>
+        <div className="mt-12 grid grid-cols-1 gap-y-10 sm:grid-cols-3 sm:gap-y-0">
           {[
             {
-              icon: <LockKey size={22} weight="duotone" />,
+              icon: <LockKey size={24} weight="light" />,
               title: "Private by default",
-              body: "Rooms are ephemeral and media stays peer-to-peer through your own server.",
+              body: "Rooms are ephemeral and media flows peer-to-peer through your own server, never a third party.",
             },
             {
-              icon: <ShareNetwork size={22} weight="duotone" />,
-              title: "Share a link",
-              body: "Every room is a URL. Send it and people join straight from the browser.",
+              icon: <ShareNetwork size={24} weight="light" />,
+              title: "Just share a link",
+              body: "Every room is a URL. Send it and people join straight from the browser, on any device.",
             },
             {
-              icon: <VideoCamera size={22} weight="duotone" />,
+              icon: <VideoCamera size={24} weight="light" />,
               title: "Talk and present",
-              body: "Camera, mic, screen sharing and chat work out of the box, on any device.",
+              body: "Camera, microphone, screen sharing and chat all work out of the box. No setup.",
             },
-          ].map((f) => (
-            <div key={f.title} className="bg-ink-soft/40 p-6">
-              <div className="grid h-10 w-10 place-items-center rounded-xl bg-aurora/15 text-aurora-soft">
-                {f.icon}
-              </div>
-              <h3 className="mt-4 font-medium text-white">{f.title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-slate-400">{f.body}</p>
+          ].map((f, i) => (
+            <div
+              key={f.title}
+              className={`px-0 sm:px-8 ${i > 0 ? "sm:border-l sm:border-white/10" : "sm:pl-0"} ${i === 2 ? "sm:pr-0" : ""}`}
+            >
+              <div className="text-aurora-soft">{f.icon}</div>
+              <h3 className="mt-5 text-lg font-medium tracking-tight text-white">{f.title}</h3>
+              <p className="mt-2.5 text-[15px] leading-relaxed text-slate-400">{f.body}</p>
             </div>
           ))}
         </div>
       </section>
 
-      <footer className="mx-auto w-full max-w-6xl px-5 py-8 text-sm text-slate-500">
-        © {new Date().getFullYear()} Fast Connect. Built with WebRTC.
+      <footer className="mx-auto w-full max-w-6xl px-5 pb-10">
+        <div className="rule mb-6" />
+        <p className="text-sm text-slate-500">
+          © {new Date().getFullYear()} Fast Connect. Built with WebRTC.
+        </p>
       </footer>
 
       <Modal

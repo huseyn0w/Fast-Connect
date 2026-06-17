@@ -9,9 +9,10 @@
 # =============================================================================
 
 # -----------------------------------------------------------------------------
-# Stage 1 — build: install all deps (incl. dev) and compile TS -> dist
+# Stage 1 — deps: install all deps (incl. dev) using the root lockfile.
+# Shared by the build and dev stages.
 # -----------------------------------------------------------------------------
-FROM node:22-alpine AS build
+FROM node:22-alpine AS deps
 WORKDIR /app
 
 # Copy the manifests needed for a deterministic, cache-friendly install.
@@ -19,15 +20,26 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 COPY server/package.json ./server/package.json
 
-# Install dependencies for the server workspace (and its transitive deps)
-# using the root lockfile. --include-workspace-root=false keeps us from
-# pulling the (non-existent) root deps.
+# Install dependencies for the server workspace (and its transitive deps).
+# --include-workspace-root=false keeps us from pulling the (empty) root deps.
 RUN npm ci --workspace @fast-connect/server --include-workspace-root=false
 
-# Copy the server source and build.
+# -----------------------------------------------------------------------------
+# Stage 1b — dev: hot-reload via `tsx watch`. Source is bind-mounted by
+# docker-compose.dev.yml, so nothing is copied in here.
+# -----------------------------------------------------------------------------
+FROM deps AS dev
+ENV NODE_ENV=development
+WORKDIR /app
+EXPOSE 5000
+CMD ["npm", "run", "dev", "--workspace", "@fast-connect/server"]
+
+# -----------------------------------------------------------------------------
+# Stage 1c — build: compile TS -> dist
+# -----------------------------------------------------------------------------
+FROM deps AS build
 COPY server/tsconfig.json ./server/tsconfig.json
 COPY server/src ./server/src
-
 RUN npm run build --workspace @fast-connect/server
 
 # -----------------------------------------------------------------------------

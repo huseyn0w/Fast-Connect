@@ -42,7 +42,7 @@ function ControlButton({ label, active, danger, badge, onClick, children }: Cont
       onClick={onClick}
       aria-label={label}
       title={label}
-      className={`relative grid h-12 w-12 place-items-center rounded-2xl transition-all duration-200 focus-ring active:scale-95 ${tone}`}
+      className={`relative grid h-12 w-12 place-items-center rounded-2xl transition-[transform,background-color,color] duration-150 ease-out-quint focus-ring active:scale-90 ${tone}`}
     >
       {children}
       {badge ? (
