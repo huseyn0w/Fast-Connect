@@ -75,7 +75,7 @@ docker compose -f docker-compose.dev.yml up --build   # http://localhost:5173
 
 Source folders are bind-mounted, so host edits sync into the containers instantly: Vite HMR refreshes the browser and `tsx` restarts the server on change — no rebuild needed. File-watching uses polling so changes are detected reliably across the mount.
 
-> macOS note: AirPlay Receiver holds port 5000. If it's in use, pick another host port for the server: `SERVER_PORT=5055 docker compose -f docker-compose.dev.yml up --build`.
+> The signaling server is published on host port **5055** by default (macOS AirPlay Receiver holds 5000). The container still listens on 5000 internally. Override with `SERVER_PORT=xxxx docker compose -f docker-compose.dev.yml up --build`.
 
 **Production-style images (no reload):** `docker compose up --build` builds the same images shipped to production (static SPA via nginx + compiled server) and serves the client on `:8080`. Use it to validate the build locally. See [docker-compose.yml](docker-compose.yml).
 
