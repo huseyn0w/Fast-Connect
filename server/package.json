@@ -20,13 +20,15 @@
     "express-rate-limit": "^7.5.0",
     "helmet": "^8.1.0",
     "peer": "^1.0.2",
-    "socket.io": "^4.8.1"
+    "socket.io": "^4.8.1",
+    "ws": "^8.21.0"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
     "@types/node": "^22.10.0",
     "@types/supertest": "^7.2.0",
+    "@types/ws": "^8.18.1",
     "socket.io-client": "^4.8.1",
     "supertest": "^7.2.2",
     "tsx": "^4.19.2",
