@@ -1,15 +1,33 @@
+import { motion, useScroll, useTransform, useReducedMotion } from "framer-motion";
+
 /**
- * Fixed deep-space backdrop: layered aurora glows plus three drifting star
- * layers at different speeds for parallax depth. Purely decorative and
- * non-interactive; honors reduced-motion via the CSS in index.css.
+ * Fixed deep-space backdrop: layered azure glows plus three drifting star
+ * layers. The glows parallax at different rates as the page scrolls, giving a
+ * sense of depth. Purely decorative and non-interactive; honors reduced-motion.
  */
 export function Backdrop() {
+  const reduce = useReducedMotion();
+  const { scrollY } = useScroll();
+  // Different drift rates = layered parallax depth.
+  const yFar = useTransform(scrollY, [0, 2200], [0, -260]);
+  const yMid = useTransform(scrollY, [0, 2200], [0, 200]);
+  const yNear = useTransform(scrollY, [0, 2200], [0, -130]);
+
   return (
     <div aria-hidden className="pointer-events-none fixed inset-0 -z-10 overflow-hidden bg-ink">
-      {/* Aurora glows */}
-      <div className="absolute -left-1/4 -top-1/3 h-[60vmax] w-[60vmax] rounded-full bg-aurora/20 blur-[120px]" />
-      <div className="absolute -right-1/4 top-0 h-[45vmax] w-[45vmax] rounded-full bg-aurora-glow/10 blur-[120px]" />
-      <div className="absolute bottom-0 left-1/3 h-[40vmax] w-[40vmax] rounded-full bg-aurora-soft/10 blur-[120px]" />
+      {/* Azure glows with scroll parallax */}
+      <motion.div
+        style={reduce ? undefined : { y: yFar }}
+        className="absolute -left-1/4 -top-1/3 h-[60vmax] w-[60vmax] rounded-full bg-aurora/20 blur-[120px]"
+      />
+      <motion.div
+        style={reduce ? undefined : { y: yMid }}
+        className="absolute -right-1/4 top-0 h-[45vmax] w-[45vmax] rounded-full bg-aurora-glow/10 blur-[120px]"
+      />
+      <motion.div
+        style={reduce ? undefined : { y: yNear }}
+        className="absolute bottom-0 left-1/3 h-[40vmax] w-[40vmax] rounded-full bg-aurora-soft/10 blur-[120px]"
+      />
 
       {/* Drifting stars */}
       <div

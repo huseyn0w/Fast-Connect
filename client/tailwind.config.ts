@@ -24,23 +24,24 @@ export default {
           soft: "#0c1322",
           card: "#111a2c",
         },
+        // Azure accent (single hue) with a cyan glow as the rare second note.
         aurora: {
-          DEFAULT: "#7c5cff",
-          soft: "#a78bfa",
+          DEFAULT: "#38bdf8",
+          soft: "#7dd3fc",
           glow: "#22d3ee",
         },
         gold: "#e8c989",
       },
       boxShadow: {
-        glow: "0 0 0 1px rgba(124,92,255,0.18), 0 20px 60px -20px rgba(124,92,255,0.45)",
+        glow: "0 0 0 1px rgba(56,189,248,0.18), 0 20px 60px -20px rgba(56,189,248,0.45)",
         card: "0 1px 0 0 rgba(255,255,255,0.04) inset, 0 30px 80px -40px rgba(0,0,0,0.8)",
         // Layered, hue-tinted elevation for the hero preview — reads expensive.
         float:
-          "inset 0 1px 0 0 rgba(255,255,255,0.08), 0 2px 8px -2px rgba(0,0,0,0.4), 0 24px 50px -24px rgba(124,92,255,0.45), 0 60px 120px -50px rgba(0,0,0,0.85)",
+          "inset 0 1px 0 0 rgba(255,255,255,0.08), 0 2px 8px -2px rgba(0,0,0,0.4), 0 24px 50px -24px rgba(56,189,248,0.45), 0 60px 120px -50px rgba(0,0,0,0.85)",
       },
       backgroundImage: {
         "aurora-radial":
-          "radial-gradient(circle at 20% 20%, rgba(124,92,255,0.25), transparent 45%), radial-gradient(circle at 80% 0%, rgba(34,211,238,0.18), transparent 40%)",
+          "radial-gradient(circle at 20% 20%, rgba(56,189,248,0.25), transparent 45%), radial-gradient(circle at 80% 0%, rgba(34,211,238,0.18), transparent 40%)",
       },
       keyframes: {
         "fade-up": {

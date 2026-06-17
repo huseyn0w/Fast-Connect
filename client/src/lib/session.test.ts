@@ -9,7 +9,7 @@ describe("session", () => {
   });
 
   it("round-trips a stored name", () => {
-    session.setName("Mara Lindqvist");
-    expect(session.getName()).toBe("Mara Lindqvist");
+    session.setName("John Doe");
+    expect(session.getName()).toBe("John Doe");
   });
 });

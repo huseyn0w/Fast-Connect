@@ -33,7 +33,7 @@ export function JoinGate({ roomId, onJoin }: JoinGateProps) {
             label="Your name"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="e.g. Mara Lindqvist"
+            placeholder="e.g. John Doe"
             error={error || undefined}
             autoFocus
           />

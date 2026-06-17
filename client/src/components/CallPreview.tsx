@@ -1,24 +1,49 @@
 import type { PointerEvent } from "react";
-import { Microphone, VideoCamera } from "@phosphor-icons/react";
+import { Microphone, MicrophoneSlash, VideoCamera } from "@phosphor-icons/react";
 import { motion, useMotionValue, useSpring, useTransform, useReducedMotion } from "framer-motion";
 
 interface Tile {
   name: string;
-  hue: string;
+  /** Full-tile mesh-gradient classes (camera-off background). */
+  fill: string;
+  /** Soft light-blob colour for depth. */
+  glow: string;
   speaking?: boolean;
+  muted?: boolean;
 }
 
 const TILES: Tile[] = [
-  { name: "Mara", hue: "from-aurora to-aurora-soft", speaking: true },
-  { name: "Teo", hue: "from-cyan-400 to-aurora-glow" },
-  { name: "Yuki", hue: "from-fuchsia-400 to-aurora" },
-  { name: "Ravi", hue: "from-emerald-400 to-cyan-400" },
+  { name: "Mara", fill: "from-aurora/30 via-aurora-soft/12 to-transparent", glow: "bg-aurora/40", speaking: true },
+  { name: "Teo", fill: "from-cyan-400/25 via-aurora-glow/10 to-transparent", glow: "bg-cyan-400/30" },
+  { name: "Yuki", fill: "from-indigo-400/25 via-aurora/10 to-transparent", glow: "bg-indigo-400/35" },
+  { name: "Ravi", fill: "from-emerald-400/22 via-cyan-400/10 to-transparent", glow: "bg-emerald-400/28", muted: true },
 ];
+
+/** Equaliser bars that pulse while a participant is speaking. */
+function Waveform({ animate }: { animate: boolean }) {
+  return (
+    <span className="flex h-3.5 items-end gap-[2.5px]">
+      {[0, 1, 2, 3].map((i) => (
+        <motion.span
+          key={i}
+          className="w-[3px] origin-bottom rounded-full bg-aurora-soft"
+          style={{ height: "100%", scaleY: 0.4 }}
+          animate={animate ? { scaleY: [0.35, 1, 0.5, 0.85, 0.35] } : undefined}
+          transition={
+            animate ? { duration: 0.9 + i * 0.12, repeat: Infinity, ease: "easeInOut" } : undefined
+          }
+        />
+      ))}
+    </span>
+  );
+}
 
 /**
  * A genuine miniature of the room UI used as the hero visual — real components,
- * not a screenshot. Tilts toward the pointer with spring physics (decorative)
- * and floats gently; both collapse under reduced-motion.
+ * not a screenshot. Each tile is a camera-off state: a soft per-person mesh
+ * gradient with a name and live audio indicator (no avatar circles). Tilts
+ * toward the pointer with spring physics and floats gently; both collapse
+ * under reduced-motion.
  */
 export function CallPreview() {
   const reduce = useReducedMotion();
@@ -45,12 +70,12 @@ export function CallPreview() {
       <div className={reduce ? "" : "animate-float"}>
         <motion.div
           style={reduce ? undefined : { rotateX, rotateY, transformStyle: "preserve-3d" }}
-          className="relative w-full max-w-md rounded-[1.75rem] border border-white/10 bg-white/[0.04] p-3 shadow-float backdrop-blur-xl"
+          className="relative w-full max-w-xl rounded-[2rem] border border-white/10 bg-white/[0.04] p-4 shadow-float backdrop-blur-xl sm:p-5"
         >
           {/* top edge highlight */}
           <div className="pointer-events-none absolute inset-x-6 top-0 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent" />
 
-          <div className="grid grid-cols-2 gap-2.5">
+          <div className="grid grid-cols-2 gap-3 sm:gap-3.5">
             {TILES.map((tile, i) => (
               <motion.div
                 key={tile.name}
@@ -61,32 +86,43 @@ export function CallPreview() {
                   tile.speaking ? "border-aurora/60 shadow-glow" : "border-white/10"
                 }`}
               >
-                <div className="absolute inset-0 grid place-items-center">
-                  <span
-                    className={`grid h-12 w-12 place-items-center rounded-full bg-gradient-to-br ${tile.hue} text-sm font-semibold text-white shadow-lg`}
-                  >
-                    {tile.name.slice(0, 2)}
-                  </span>
-                </div>
+                {/* per-person mesh gradient fill */}
+                <div className={`absolute inset-0 bg-gradient-to-br ${tile.fill}`} />
+                {/* soft light source for depth */}
+                <div className={`absolute -left-5 -top-7 h-24 w-24 rounded-full ${tile.glow} blur-2xl`} />
+                {/* legibility gradient under the label */}
+                <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-ink/75 to-transparent" />
+
                 {tile.speaking && (
                   <span className="absolute inset-0 rounded-2xl ring-1 ring-inset ring-aurora/40 animate-shimmer" />
                 )}
-                <span className="absolute bottom-1.5 left-1.5 rounded-md bg-ink/70 px-1.5 py-0.5 text-[10px] font-medium text-slate-200 backdrop-blur-sm">
+
+                <span className="absolute bottom-2 left-2.5 text-sm font-medium text-white/95 drop-shadow-[0_1px_3px_rgba(0,0,0,0.6)]">
                   {tile.name}
+                </span>
+
+                <span className="absolute bottom-2 right-2 grid h-6 min-w-6 place-items-center rounded-md bg-ink/55 px-1 backdrop-blur-sm">
+                  {tile.speaking ? (
+                    <Waveform animate={!reduce} />
+                  ) : tile.muted ? (
+                    <MicrophoneSlash size={14} weight="fill" className="text-rose-300/90" />
+                  ) : (
+                    <Microphone size={14} weight="fill" className="text-slate-300/70" />
+                  )}
                 </span>
               </motion.div>
             ))}
           </div>
 
-          <div className="mt-3 flex items-center justify-center gap-2">
-            <span className="grid h-9 w-9 place-items-center rounded-full bg-white/[0.06] text-slate-200">
-              <Microphone size={16} weight="fill" />
+          <div className="mt-4 flex items-center justify-center gap-2.5">
+            <span className="grid h-11 w-11 place-items-center rounded-full bg-white/[0.06] text-slate-200">
+              <Microphone size={20} weight="fill" />
             </span>
-            <span className="grid h-9 w-9 place-items-center rounded-full bg-white/[0.06] text-slate-200">
-              <VideoCamera size={16} weight="fill" />
+            <span className="grid h-11 w-11 place-items-center rounded-full bg-white/[0.06] text-slate-200">
+              <VideoCamera size={20} weight="fill" />
             </span>
-            <span className="grid h-9 w-9 place-items-center rounded-full bg-rose-500/90 text-white shadow-[0_8px_24px_-6px_rgba(244,63,94,0.6)]">
-              <span className="h-1.5 w-4 rounded-full bg-white" />
+            <span className="grid h-11 w-11 place-items-center rounded-full bg-rose-500/90 text-white shadow-[0_8px_24px_-6px_rgba(244,63,94,0.6)]">
+              <span className="h-2 w-5 rounded-full bg-white" />
             </span>
           </div>
         </motion.div>
